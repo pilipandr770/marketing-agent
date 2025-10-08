@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+
+{% block title %}Dateien - Marketing SaaS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2><i class="bi bi-files"></i> Dateien & Knowledge Base</h2>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-cloud-upload"></i> Datei hochladen</h5>
+            </div>
+            <div class="card-body">
+                <form method="post" enctype="multipart/form-data">
+                    {{ form.csrf_token }}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            {{ form.file.label(class="form-label") }}
+                            {{ form.file(class="form-control") }}
+                            <div class="form-text">
+                                Unterstützte Formate: Text, PDF, Bilder, Audio, Video
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.vector_store_id.label(class="form-label") }}
+                            {{ form.vector_store_id(class="form-control") }}
+                            <div class="form-text">{{ form.vector_store_id.description }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.description.label(class="form-label") }}
+                        {{ form.description(class="form-control", rows=3) }}
+                        <div class="form-text">{{ form.description.description }}</div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-success") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Files List -->
+        <div class="card mt-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5><i class="bi bi-folder2-open"></i> Meine Dateien</h5>
+                <a href="{{ url_for('files.usage') }}" class="btn btn-outline-info btn-sm">
+                    <i class="bi bi-pie-chart"></i> Statistiken
+                </a>
+            </div>
+            <div class="card-body">
+                {% if files %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Datei</th>
+                                    <th>Typ</th>
+                                    <th>Größe</th>
+                                    <th>OpenAI Status</th>
+                                    <th>Vector Store</th>
+                                    <th>Hochgeladen</th>
+                                    <th>Aktionen</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for file in files %}
+                                <tr>
+                                    <td>
+                                        <i class="bi bi-file-earmark me-2"></i>
+                                        {{ file.original_filename }}
+                                    </td>
+                                    <td>
+                                        {% if file.mime_type %}
+                                            <span class="badge bg-secondary">{{ file.mime_type.split('/')[0] }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if file.file_size %}
+                                            {{ "%.1f"|format(file.file_size / 1024 / 1024) }} MB
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if file.openai_file_id %}
+                                            <span class="badge bg-success">Hochgeladen</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Fehler</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if file.vector_store_id %}
+                                            <code class="small">{{ file.vector_store_id[:8] }}...</code>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ file.created_at.strftime('%d.%m.%Y %H:%M') }}
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('files.delete', file_id=file.id) }}" 
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Datei wirklich löschen?')">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center text-muted py-4">
+                        <i class="bi bi-inbox display-4"></i>
+                        <p class="mt-2">Noch keine Dateien hochgeladen.</p>
+                        <p>Laden Sie Ihre erste Datei hoch, um sie in der KI zu verwenden.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <!-- Vector Stores -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h6><i class="bi bi-database"></i> Vector Stores</h6>
+                <a href="{{ url_for('files.vector_stores') }}" class="btn btn-outline-primary btn-sm">
+                    Verwalten
+                </a>
+            </div>
+            <div class="card-body">
+                {% if current_user.openai_vector_store_id %}
+                    <p><strong>Standard Vector Store:</strong></p>
+                    <code class="small">{{ current_user.openai_vector_store_id }}</code>
+                {% else %}
+                    <p class="text-muted">Kein Standard Vector Store konfiguriert.</p>
+                    <p class="small">Wird automatisch beim ersten Upload erstellt.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Upload Guidelines -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6><i class="bi bi-info-circle"></i> Upload-Richtlinien</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success"></i> <strong>Text-Dateien:</strong> Werden zur KI-Knowledge Base hinzugefügt</li>
+                    <li><i class="bi bi-check text-success"></i> <strong>Bilder:</strong> Für Referenz und Analyse verfügbar</li>
+                    <li><i class="bi bi-check text-success"></i> <strong>Audio/Video:</strong> Werden zu OpenAI hochgeladen</li>
+                    <li><i class="bi bi-info text-info"></i> <strong>Max. Größe:</strong> 16MB pro Datei</li>
+                </ul>
+                
+                <hr class="my-3">
+                
+                <h6 class="small">Unterstützte Formate:</h6>
+                <div class="d-flex flex-wrap gap-1">
+                    <span class="badge bg-light text-dark">TXT</span>
+                    <span class="badge bg-light text-dark">PDF</span>
+                    <span class="badge bg-light text-dark">DOCX</span>
+                    <span class="badge bg-light text-dark">MD</span>
+                    <span class="badge bg-light text-dark">JPG</span>
+                    <span class="badge bg-light text-dark">PNG</span>
+                    <span class="badge bg-light text-dark">MP3</span>
+                    <span class="badge bg-light text-dark">MP4</span>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Tips -->
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6><i class="bi bi-lightbulb"></i> Tipps</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled small">
+                    <li><i class="bi bi-arrow-right text-primary"></i> Organisieren Sie Dateien nach Themen</li>
+                    <li><i class="bi bi-arrow-right text-primary"></i> Verwenden Sie beschreibende Dateinamen</li>
+                    <li><i class="bi bi-arrow-right text-primary"></i> Text-Dateien verbessern die KI-Antworten</li>
+                    <li><i class="bi bi-arrow-right text-primary"></i> Regelmäßig nicht benötigte Dateien löschen</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

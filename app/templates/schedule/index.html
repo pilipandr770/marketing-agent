@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Zeitpläne - Marketing SaaS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2><i class="bi bi-calendar-event"></i> Zeitpläne</h2>
+            <a href="{{ url_for('schedule.cron_examples') }}" class="btn btn-outline-info">
+                <i class="bi bi-question-circle"></i> CRON Hilfe
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Add New Schedule -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h5><i class="bi bi-plus-circle"></i> Neuer Zeitplan</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {{ form.csrf_token }}
+            
+            <div class="row mb-3">
+                <div class="col-md-3">
+                    {{ form.channel.label(class="form-label") }}
+                    {{ form.channel(class="form-select") }}
+                </div>
+                <div class="col-md-4">
+                    {{ form.cron_expression.label(class="form-label") }}
+                    {{ form.cron_expression(class="form-control" + (" is-invalid" if form.cron_expression.errors else ""), id="cronInput") }}
+                    <div class="form-text">{{ form.cron_expression.description }}</div>
+                    {% if form.cron_expression.errors %}
+                        <div class="invalid-feedback">{{ form.cron_expression.errors[0] }}</div>
+                    {% endif %}
+                    <div id="cronPreview" class="mt-2"></div>
+                </div>
+                <div class="col-md-3">
+                    {{ form.content_type.label(class="form-label") }}
+                    {{ form.content_type(class="form-select") }}
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <div class="form-check">
+                        {{ form.active(class="form-check-input") }}
+                        {{ form.active.label(class="form-check-label") }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                {{ form.content_template.label(class="form-label") }}
+                {{ form.content_template(class="form-control", rows=3) }}
+                <div class="form-text">{{ form.content_template.description }}</div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-6">
+                    <div class="form-check">
+                        {{ form.generate_image(class="form-check-input") }}
+                        {{ form.generate_image.label(class="form-check-label") }}
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-check">
+                        {{ form.generate_voice(class="form-check-input") }}
+                        {{ form.generate_voice.label(class="form-check-label") }}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-grid">
+                {{ form.submit(class="btn btn-success") }}
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Existing Schedules -->
+<div class="card">
+    <div class="card-header">
+        <h5><i class="bi bi-list"></i> Meine Zeitpläne</h5>
+    </div>
+    <div class="card-body">
+        {% if schedules %}
+            <div class="table-responsive">
+                <table class="table schedule-table">
+                    <thead>
+                        <tr>
+                            <th>Kanal</th>
+                            <th>CRON</th>
+                            <th>Content Template</th>
+                            <th>Features</th>
+                            <th>Status</th>
+                            <th>Nächster Lauf</th>
+                            <th>Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for schedule in schedules %}
+                        <tr>
+                            <td>
+                                <span class="badge bg-primary">{{ schedule.channel.title() }}</span>
+                            </td>
+                            <td>
+                                <code>{{ schedule.cron_expression }}</code>
+                            </td>
+                            <td>
+                                <div class="text-truncate-2" style="max-width: 200px;">
+                                    {{ schedule.content_template }}
+                                </div>
+                            </td>
+                            <td>
+                                {% if schedule.generate_image %}
+                                    <span class="badge bg-info me-1">Bild</span>
+                                {% endif %}
+                                {% if schedule.generate_voice %}
+                                    <span class="badge bg-warning me-1">Voice</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if schedule.active %}
+                                    <span class="badge bg-success">Aktiv</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">Inaktiv</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if schedule.next_run %}
+                                    {{ schedule.next_run.strftime('%d.%m. %H:%M') }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ url_for('schedule.edit', schedule_id=schedule.id) }}" 
+                                       class="btn btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{{ url_for('schedule.toggle', schedule_id=schedule.id) }}" 
+                                       class="btn btn-outline-{{ 'warning' if schedule.active else 'success' }}">
+                                        <i class="bi bi-{{ 'pause' if schedule.active else 'play' }}"></i>
+                                    </a>
+                                    <a href="{{ url_for('schedule.run_now', schedule_id=schedule.id) }}" 
+                                       class="btn btn-outline-info">
+                                        <i class="bi bi-play-fill"></i>
+                                    </a>
+                                    <a href="{{ url_for('schedule.delete', schedule_id=schedule.id) }}" 
+                                       class="btn btn-outline-danger"
+                                       onclick="return confirm('Zeitplan wirklich löschen?')">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center text-muted py-4">
+                <i class="bi bi-calendar-x display-4"></i>
+                <p class="mt-2">Noch keine Zeitpläne erstellt.</p>
+                <p>Erstellen Sie Ihren ersten automatischen Zeitplan oben.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const cronInput = document.getElementById('cronInput');
+    const cronPreview = document.getElementById('cronPreview');
+    
+    if (cronInput) {
+        cronInput.addEventListener('input', function() {
+            validateCron(this.value);
+        });
+    }
+    
+    function validateCron(cronExpr) {
+        if (!cronExpr.trim()) {
+            cronPreview.innerHTML = '';
+            return;
+        }
+        
+        fetch('{{ url_for("schedule.validate_cron") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({cron: cronExpr})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.valid) {
+                cronPreview.innerHTML = `
+                    <div class="alert alert-success py-2">
+                        <small><i class="bi bi-check-circle"></i> Gültig - Nächste Ausführungen:</small><br>
+                        <small>${data.next_runs.join(', ')}</small>
+                    </div>
+                `;
+            } else {
+                cronPreview.innerHTML = `
+                    <div class="alert alert-danger py-2">
+                        <small><i class="bi bi-exclamation-triangle"></i> ${data.error}</small>
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('CRON validation error:', error);
+        });
+    }
+});
+</script>
+{% endblock %}

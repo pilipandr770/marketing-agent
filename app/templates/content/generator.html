@@ -1,0 +1,130 @@
+{% extends "base.html" %}
+
+{% block title %}Content Generator - Marketing SaaS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <h2><i class="bi bi-magic"></i> Content Generator</h2>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-wand2"></i> Neuen Content erstellen</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {{ form.csrf_token }}
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-8">
+                            {{ form.topic.label(class="form-label") }}
+                            {{ form.topic(class="form-control" + (" is-invalid" if form.topic.errors else "")) }}
+                            <div class="form-text">{{ form.topic.description }}</div>
+                            {% if form.topic.errors %}
+                                <div class="invalid-feedback">{{ form.topic.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            {{ form.channel.label(class="form-label") }}
+                            {{ form.channel(class="form-select") }}
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                {{ form.generate_image(class="form-check-input") }}
+                                {{ form.generate_image.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                {{ form.generate_voice(class="form-check-input") }}
+                                {{ form.generate_voice.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-check">
+                                {{ form.auto_publish(class="form-check-input") }}
+                                {{ form.auto_publish.label(class="form-check-label") }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-primary btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        {% if generated_content %}
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="bi bi-eye"></i> Generierter Content</h5>
+            </div>
+            <div class="card-body">
+                <div class="content-preview">
+                    <h6>Text Content:</h6>
+                    <p>{{ generated_content.text }}</p>
+                </div>
+                
+                {% if generated_content.image_b64 %}
+                    <div class="mt-3">
+                        <h6>Generiertes Bild:</h6>
+                        <img src="data:image/png;base64,{{ generated_content.image_b64 }}" 
+                             class="generated-image" alt="Generiertes Bild">
+                    </div>
+                {% endif %}
+                
+                {% if generated_content.voice_available %}
+                    <div class="mt-3">
+                        <h6>Sprachausgabe:</h6>
+                        <p><i class="bi bi-volume-up"></i> Audio generiert (Download verfügbar)</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h6><i class="bi bi-clock-history"></i> Letzte Inhalte</h6>
+            </div>
+            <div class="card-body">
+                {% if recent_content %}
+                    {% for content in recent_content %}
+                        <div class="border-bottom pb-2 mb-2">
+                            <small class="text-muted">{{ content.created_at.strftime('%d.%m. %H:%M') }}</small>
+                            <p class="mb-1 text-truncate-2">{{ content.text_content }}</p>
+                            <span class="badge bg-{{ 'success' if content.published else 'secondary' }} me-1">
+                                {{ content.channel.title() }}
+                            </span>
+                            {% if content.published %}
+                                <i class="bi bi-check-circle text-success"></i>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">Noch keine Inhalte generiert.</p>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="card mt-3">
+            <div class="card-header">
+                <h6><i class="bi bi-lightbulb"></i> Tipps</h6>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><i class="bi bi-check text-success"></i> Seien Sie spezifisch mit Ihrem Thema</li>
+                    <li><i class="bi bi-check text-success"></i> Verwenden Sie Keywords für bessere Ergebnisse</li>
+                    <li><i class="bi bi-check text-success"></i> Testen Sie verschiedene Kanäle</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

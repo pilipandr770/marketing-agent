@@ -1,0 +1,203 @@
+{% extends "base.html" %}
+
+{% block title %}Einstellungen - Marketing SaaS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <h2><i class="bi bi-gear"></i> Einstellungen</h2>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="bi bi-sliders"></i> Kanal-Konfiguration</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {{ form.csrf_token }}
+                    
+                    <!-- Telegram Settings -->
+                    <h6 class="text-primary border-bottom pb-2 mb-3">
+                        <i class="bi bi-telegram"></i> Telegram
+                    </h6>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.telegram_token.label(class="form-label") }}
+                            {{ form.telegram_token(class="form-control" + (" is-invalid" if form.telegram_token.errors else "")) }}
+                            <div class="form-text">
+                                Bot Token von @BotFather erhalten
+                            </div>
+                            {% if form.telegram_token.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.telegram_token.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            {{ form.telegram_chat_id.label(class="form-label") }}
+                            {{ form.telegram_chat_id(class="form-control" + (" is-invalid" if form.telegram_chat_id.errors else "")) }}
+                            <div class="form-text">
+                                {{ form.telegram_chat_id.description }}
+                            </div>
+                            {% if form.telegram_chat_id.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.telegram_chat_id.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Test Telegram Connection -->
+                    {% if current_user.telegram_token and current_user.telegram_chat_id %}
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-outline-primary btn-sm" id="testTelegram">
+                                <i class="bi bi-check-circle"></i> Telegram-Verbindung testen
+                            </button>
+                            <div id="telegramTestResult" class="mt-2"></div>
+                        </div>
+                    {% endif %}
+                    
+                    <!-- OpenAI Settings -->
+                    <h6 class="text-success border-bottom pb-2 mb-3 mt-4">
+                        <i class="bi bi-robot"></i> OpenAI / KI-Einstellungen
+                    </h6>
+                    
+                    <div class="mb-3">
+                        {{ form.openai_api_key.label(class="form-label") }}
+                        {{ form.openai_api_key(class="form-control" + (" is-invalid" if form.openai_api_key.errors else "")) }}
+                        <div class="form-text">
+                            Leer lassen für System-Standard. Eigener Schlüssel für erweiterte Nutzung.
+                        </div>
+                        {% if form.openai_api_key.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.openai_api_key.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="mb-3">
+                        {{ form.openai_system_prompt.label(class="form-label") }}
+                        {{ form.openai_system_prompt(class="form-control", rows=6) }}
+                        <div class="form-text">
+                            {{ form.openai_system_prompt.description }}
+                        </div>
+                        {% if form.openai_system_prompt.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ form.openai_system_prompt.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Example System Prompts -->
+                    <div class="card bg-light mb-3">
+                        <div class="card-body">
+                            <h6 class="card-title">Beispiel-Anweisungen:</h6>
+                            <div class="accordion" id="promptExamples">
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#businessPrompt">
+                                            Business/B2B
+                                        </button>
+                                    </h2>
+                                    <div id="businessPrompt" class="accordion-collapse collapse" data-bs-parent="#promptExamples">
+                                        <div class="accordion-body">
+                                            <small class="text-muted">
+                                                "Schreibe professionell und business-orientiert. Fokussiere auf ROI, Effizienz und Mehrwert für Unternehmen. Verwende Fachbegriffe angemessen und einen seriösen Ton."
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="accordion-item">
+                                    <h2 class="accordion-header">
+                                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#creativePrompt">
+                                            Kreativ/Lifestyle
+                                        </button>
+                                    </h2>
+                                    <div id="creativePrompt" class="accordion-collapse collapse" data-bs-parent="#promptExamples">
+                                        <div class="accordion-body">
+                                            <small class="text-muted">
+                                                "Nutze einen kreativen, inspirierenden Ton. Verwende Storytelling-Elemente und emotionale Sprache. Integriere Trends und lifestyle-relevante Themen."
+                                            </small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid">
+                        {{ form.submit(class="btn btn-success btn-lg") }}
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Account Information -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="bi bi-person-circle"></i> Konto-Informationen</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>E-Mail:</strong> {{ current_user.email }}</p>
+                        <p><strong>Registriert:</strong> {{ current_user.created_at.strftime('%d.%m.%Y') }}</p>
+                        <p><strong>Plan:</strong> 
+                            <span class="badge bg-{{ 'success' if current_user.plan != 'free' else 'secondary' }}">
+                                {{ current_user.plan.title() }}
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        {% if current_user.openai_vector_store_id %}
+                            <p><strong>Vector Store:</strong> 
+                                <code class="small">{{ current_user.openai_vector_store_id }}</code>
+                            </p>
+                        {% endif %}
+                        {% if current_user.stripe_customer_id %}
+                            <p><strong>Stripe Customer:</strong> 
+                                <code class="small">{{ current_user.stripe_customer_id }}</code>
+                            </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const testTelegramBtn = document.getElementById('testTelegram');
+    const testResult = document.getElementById('telegramTestResult');
+    
+    if (testTelegramBtn) {
+        testTelegramBtn.addEventListener('click', function() {
+            testTelegramBtn.disabled = true;
+            testTelegramBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Teste...';
+            
+            fetch('{{ url_for("content.test_connection", channel="telegram") }}')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        testResult.innerHTML = `<div class="alert alert-success">${data.message}</div>`;
+                    } else {
+                        testResult.innerHTML = `<div class="alert alert-danger">${data.message}</div>`;
+                    }
+                })
+                .catch(error => {
+                    testResult.innerHTML = `<div class="alert alert-danger">Fehler beim Test: ${error}</div>`;
+                })
+                .finally(() => {
+                    testTelegramBtn.disabled = false;
+                    testTelegramBtn.innerHTML = '<i class="bi bi-check-circle"></i> Telegram-Verbindung testen';
+                });
+        });
+    }
+});
+</script>
+{% endblock %}
