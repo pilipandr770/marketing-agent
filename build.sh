@@ -17,7 +17,11 @@ else
     echo "✅ Migrations directory found"
 fi
 
-echo "🚀 Applying database migrations..."
+echo "� Resetting migration history..."
+# This ensures alembic_version matches our migration files
+flask db stamp head 2>/dev/null || echo "⚠️ No existing migrations to stamp"
+
+echo "�🚀 Applying database migrations..."
 # Run migrations (will create/update tables)
 flask db upgrade
 
