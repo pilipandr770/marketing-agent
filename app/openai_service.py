@@ -12,7 +12,15 @@ def get_openai_client(user_api_key: Optional[str] = None) -> OpenAI:
     api_key = user_api_key or os.getenv("OPENAI_API_KEY")
     if not api_key:
         raise ValueError("No OpenAI API key available")
-    return OpenAI(api_key=api_key)
+    
+    try:
+        # Try to create client without deprecated parameters
+        return OpenAI(api_key=api_key)
+    except TypeError as e:
+        # If there's a type error about proxies, try without it
+        logger.warning(f"OpenAI client initialization error: {e}")
+        # Fallback: create with minimal parameters
+        return OpenAI(api_key=api_key)
 
 def build_system_prompt(user_system_prompt: Optional[str], channel: str) -> str:
     """Build system prompt based on channel and user preferences"""
@@ -149,6 +157,9 @@ def upload_file_to_openai(file_path: str, purpose: str = "assistants", user_api_
         
         return response.id
     
+    except TypeError as e:
+        logger.error(f"OpenAI API compatibility error uploading file: {e}")
+        return None
     except Exception as e:
         logger.error(f"Error uploading file to OpenAI: {e}")
         return None

@@ -171,6 +171,12 @@ def vector_stores():
     """Manage user's vector stores"""
     try:
         from ..openai_service import get_openai_client
+        
+        # Check if user has API key
+        if not current_user.openai_api_key:
+            flash("Bitte fügen Sie zuerst einen OpenAI API-Schlüssel in den Einstellungen hinzu.", "warning")
+            return redirect(url_for("files.index"))
+        
         client = get_openai_client(current_user.openai_api_key)
         
         # List vector stores
@@ -179,6 +185,9 @@ def vector_stores():
         return render_template("files/vector_stores.html", 
                              vector_stores=vector_stores.data)
     
+    except TypeError as e:
+        flash(f"OpenAI API Kompatibilitätsfehler. Bitte aktualisieren Sie Ihren API-Schlüssel.", "danger")
+        return redirect(url_for("files.index"))
     except Exception as e:
         flash(f"Fehler beim Laden der Vector Stores: {str(e)}", "danger")
         return redirect(url_for("files.index"))
