@@ -7,9 +7,6 @@
     <div class="col-12">
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2><i class="bi bi-calendar-event"></i> Zeitpläne</h2>
-            <a href="{{ url_for('schedule.cron_examples') }}" class="btn btn-outline-info">
-                <i class="bi bi-question-circle"></i> CRON Hilfe
-            </a>
         </div>
     </div>
 </div>
@@ -28,24 +25,35 @@
                     {{ form.channel.label(class="form-label") }}
                     {{ form.channel(class="form-select") }}
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                     {{ form.cron_expression.label(class="form-label") }}
-                    {{ form.cron_expression(class="form-control" + (" is-invalid" if form.cron_expression.errors else ""), id="cronInput") }}
-                    <div class="form-text">{{ form.cron_expression.description }}</div>
+                    <button type="button" class="btn btn-sm btn-outline-info ms-2" data-bs-toggle="modal" data-bs-target="#cronHelpModal">
+                        <i class="bi bi-question-circle"></i> Beispiele
+                    </button>
+                    {{ form.cron_expression(class="form-control" + (" is-invalid" if form.cron_expression.errors else ""), id="cronInput", placeholder="z.B. 0 9 * * * für jeden Tag um 9 Uhr") }}
+                    <div class="form-text">
+                        <strong>Schnell-Auswahl:</strong>
+                        <button type="button" class="btn btn-sm btn-link p-0 ms-2" onclick="setCron('0 9 * * *')">Täglich 9:00</button> |
+                        <button type="button" class="btn btn-sm btn-link p-0" onclick="setCron('0 */3 * * *')">Alle 3 Stunden</button> |
+                        <button type="button" class="btn btn-sm btn-link p-0" onclick="setCron('0 12 * * 1')">Montags 12:00</button>
+                    </div>
                     {% if form.cron_expression.errors %}
                         <div class="invalid-feedback">{{ form.cron_expression.errors[0] }}</div>
                     {% endif %}
-                    <div id="cronPreview" class="mt-2"></div>
+                    <div id="cronPreview" class="mt-2 text-muted small"></div>
                 </div>
-                <div class="col-md-3">
-                    {{ form.content_type.label(class="form-label") }}
-                    {{ form.content_type(class="form-select") }}
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
+                <div class="col-md-3 d-flex align-items-end">
                     <div class="form-check">
                         {{ form.active(class="form-check-input") }}
                         {{ form.active.label(class="form-check-label") }}
                     </div>
+                </div>
+            </div>
+            
+            <div class="row mb-3">
+                <div class="col-md-12">
+                    {{ form.content_type.label(class="form-label") }}
+                    {{ form.content_type(class="form-select") }}
                 </div>
             </div>
             
@@ -218,5 +226,107 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+// Function to set CRON expression
+function setCron(cronExpr) {
+    document.getElementById('cronInput').value = cronExpr;
+    document.getElementById('cronInput').dispatchEvent(new Event('input'));
+}
 </script>
+
+<!-- CRON Help Modal -->
+<div class="modal fade" id="cronHelpModal" tabindex="-1" aria-labelledby="cronHelpModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="cronHelpModalLabel"><i class="bi bi-question-circle"></i> CRON Zeitplan Hilfe</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <h6>Was ist CRON?</h6>
+        <p>CRON ist eine Methode, um wiederkehrende Aufgaben zu planen. Ein CRON-Ausdruck besteht aus 5 Teilen:</p>
+        
+        <div class="alert alert-info">
+          <pre class="mb-0"><strong>Minute  Stunde  Tag  Monat  Wochentag</strong>
+   0-59    0-23   1-31  1-12   0-6</pre>
+        </div>
+
+        <h6 class="mt-3">Häufige Beispiele:</h6>
+        <table class="table table-sm">
+          <thead>
+            <tr>
+              <th>CRON Ausdruck</th>
+              <th>Beschreibung</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>0 9 * * *</code></td>
+              <td>Jeden Tag um 9:00 Uhr</td>
+              <td><button class="btn btn-sm btn-outline-primary" onclick="setCron('0 9 * * *'); bootstrap.Modal.getInstance(document.getElementById('cronHelpModal')).hide();">Verwenden</button></td>
+            </tr>
+            <tr>
+              <td><code>0 12 * * 1</code></td>
+              <td>Jeden Montag um 12:00 Uhr</td>
+              <td><button class="btn btn-sm btn-outline-primary" onclick="setCron('0 12 * * 1'); bootstrap.Modal.getInstance(document.getElementById('cronHelpModal')).hide();">Verwenden</button></td>
+            </tr>
+            <tr>
+              <td><code>0 18 * * 5</code></td>
+              <td>Jeden Freitag um 18:00 Uhr</td>
+              <td><button class="btn btn-sm btn-outline-primary" onclick="setCron('0 18 * * 5'); bootstrap.Modal.getInstance(document.getElementById('cronHelpModal')).hide();">Verwenden</button></td>
+            </tr>
+            <tr>
+              <td><code>0 */3 * * *</code></td>
+              <td>Alle 3 Stunden (0:00, 3:00, 6:00...)</td>
+              <td><button class="btn btn-sm btn-outline-primary" onclick="setCron('0 */3 * * *'); bootstrap.Modal.getInstance(document.getElementById('cronHelpModal')).hide();">Verwenden</button></td>
+            </tr>
+            <tr>
+              <td><code>30 8 * * 1-5</code></td>
+              <td>Werktags um 8:30 Uhr</td>
+              <td><button class="btn btn-sm btn-outline-primary" onclick="setCron('30 8 * * 1-5'); bootstrap.Modal.getInstance(document.getElementById('cronHelpModal')).hide();">Verwenden</button></td>
+            </tr>
+            <tr>
+              <td><code>0 10,14 * * *</code></td>
+              <td>Jeden Tag um 10:00 und 14:00 Uhr</td>
+              <td><button class="btn btn-sm btn-outline-primary" onclick="setCron('0 10,14 * * *'); bootstrap.Modal.getInstance(document.getElementById('cronHelpModal')).hide();">Verwenden</button></td>
+            </tr>
+            <tr>
+              <td><code>0 0 1 * *</code></td>
+              <td>Am 1. jedes Monats um Mitternacht</td>
+              <td><button class="btn btn-sm btn-outline-primary" onclick="setCron('0 0 1 * *'); bootstrap.Modal.getInstance(document.getElementById('cronHelpModal')).hide();">Verwenden</button></td>
+            </tr>
+            <tr>
+              <td><code>*/15 * * * *</code></td>
+              <td>Alle 15 Minuten</td>
+              <td><button class="btn btn-sm btn-outline-primary" onclick="setCron('*/15 * * * *'); bootstrap.Modal.getInstance(document.getElementById('cronHelpModal')).hide();">Verwenden</button></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h6 class="mt-3">Wochentage:</h6>
+        <ul>
+          <li><strong>0 oder 7</strong> = Sonntag</li>
+          <li><strong>1</strong> = Montag</li>
+          <li><strong>2</strong> = Dienstag</li>
+          <li><strong>3</strong> = Mittwoch</li>
+          <li><strong>4</strong> = Donnerstag</li>
+          <li><strong>5</strong> = Freitag</li>
+          <li><strong>6</strong> = Samstag</li>
+        </ul>
+
+        <h6 class="mt-3">Sonderzeichen:</h6>
+        <ul>
+          <li><strong>*</strong> = Jeder Wert (z.B. * * * * * = jede Minute)</li>
+          <li><strong>/</strong> = Schritte (z.B. */5 = alle 5 Einheiten)</li>
+          <li><strong>,</strong> = Liste (z.B. 1,3,5 = Montag, Mittwoch, Freitag)</li>
+          <li><strong>-</strong> = Bereich (z.B. 1-5 = Montag bis Freitag)</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Schließen</button>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
