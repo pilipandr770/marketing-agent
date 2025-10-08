@@ -12,13 +12,22 @@ class User(db.Model, UserMixin):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     is_active = db.Column(db.Boolean, default=True)
 
-    # Multi-tenant social media channel configurations
+    # === Telegram ===
     telegram_token = db.Column(db.String(256))
     telegram_chat_id = db.Column(db.String(128))
-    facebook_access_token = db.Column(db.String(512))
+
+    # === LinkedIn (ручний ввід токена) ===
+    # для Company Page: organization URN типу "urn:li:organization:123456"
+    # для особистого профілю: "urn:li:person:xxxx"
+    linkedin_access_token = db.Column(db.String(1024))
+    linkedin_urn = db.Column(db.String(128))  # organization або person URN
+
+    # === Meta Graph (Facebook Page / Instagram Business) ===
+    # long-lived access token із дозволами pages_manage_posts, pages_read_engagement,
+    # instagram_basic, instagram_content_publish
+    meta_access_token = db.Column(db.String(1024))
     facebook_page_id = db.Column(db.String(128))
-    linkedin_access_token = db.Column(db.String(512))
-    instagram_access_token = db.Column(db.String(512))
+    instagram_business_id = db.Column(db.String(128))
 
     # OpenAI per-user configuration (scalable multi-tenancy)
     openai_vector_store_id = db.Column(db.String(128))

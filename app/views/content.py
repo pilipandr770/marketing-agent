@@ -13,22 +13,47 @@ from ..openai_service import (
     generate_image_b64, generate_tts_audio
 )
 from ..publishers.telegram_publisher import TelegramPublisher
+from ..publishers.linkedin_publisher import LinkedInPublisher
+from ..publishers.meta_publisher import FacebookPublisher, InstagramPublisher
 
 content_bp = Blueprint("content", __name__, url_prefix="/content")
 
 def get_publisher(channel: str, user):
-    """Get publisher instance for channel"""
+    """
+    Publisher factory - повертає інстанс паблішера залежно від каналу і налаштувань користувача.
+    """
     if channel == "telegram":
         if not user.telegram_token or not user.telegram_chat_id:
             return None
-        
-        config = {
+        return TelegramPublisher({
             "bot_token": user.telegram_token,
             "chat_id": user.telegram_chat_id
-        }
-        return TelegramPublisher(config)
-    
-    # Add other publishers here (Facebook, LinkedIn, Instagram)
+        })
+
+    if channel == "linkedin":
+        if not user.linkedin_access_token or not user.linkedin_urn:
+            return None
+        return LinkedInPublisher({
+            "access_token": user.linkedin_access_token,
+            "urn": user.linkedin_urn
+        })
+
+    if channel == "facebook":
+        if not user.meta_access_token or not user.facebook_page_id:
+            return None
+        return FacebookPublisher({
+            "access_token": user.meta_access_token,
+            "page_id": user.facebook_page_id
+        })
+
+    if channel == "instagram":
+        if not user.meta_access_token or not user.instagram_business_id:
+            return None
+        return InstagramPublisher({
+            "access_token": user.meta_access_token,
+            "ig_business_id": user.instagram_business_id
+        })
+
     return None
 
 @content_bp.route("/", methods=["GET", "POST"])

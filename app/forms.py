@@ -22,16 +22,25 @@ class LoginForm(FlaskForm):
     submit = SubmitField("Anmelden")
 
 class SettingsForm(FlaskForm):
-    # Telegram settings
+    # Telegram
     telegram_token = StringField("Telegram Bot Token", validators=[Optional()])
     telegram_chat_id = StringField("Telegram Chat/Kanal ID", validators=[Optional()], 
                                    description="@kanalname oder numerische ID")
     
-    # OpenAI settings
+    # OpenAI
     openai_system_prompt = TextAreaField("System-Anweisungen für KI-Modell", 
                                          validators=[Optional()], 
                                          description="Zusätzliche Anweisungen für die Content-Generierung")
     openai_api_key = StringField("Eigener OpenAI API-Schlüssel (optional)", validators=[Optional()])
+
+    # LinkedIn (ручний токен + URN)
+    linkedin_access_token = StringField("LinkedIn Access Token (manuell)", validators=[Optional()])
+    linkedin_urn = StringField("LinkedIn URN (z.B. urn:li:organization:123456)", validators=[Optional()])
+
+    # Meta Graph (Facebook Page / Instagram Business)
+    meta_access_token = StringField("Meta (Facebook/Instagram) Long-Lived Access Token", validators=[Optional()])
+    facebook_page_id = StringField("Facebook Page ID", validators=[Optional()])
+    instagram_business_id = StringField("Instagram Business Account ID", validators=[Optional()])
     
     submit = SubmitField("Einstellungen speichern")
 

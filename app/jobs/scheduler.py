@@ -137,6 +137,8 @@ def execute_scheduled_post(schedule_id, app):
             from ..extensions import db
             from ..openai_service import build_system_prompt, generate_post_text, generate_image_b64
             from ..publishers.telegram_publisher import TelegramPublisher
+            from ..publishers.linkedin_publisher import LinkedInPublisher
+            from ..publishers.meta_publisher import FacebookPublisher, InstagramPublisher
             
             # Get schedule and user
             schedule = Schedule.query.get(schedule_id)
@@ -197,6 +199,39 @@ def execute_scheduled_post(schedule_id, app):
                         "chat_id": user.telegram_chat_id
                     }
                     publisher = TelegramPublisher(config)
+            
+            elif schedule.channel == "linkedin":
+                if not user.linkedin_access_token or not user.linkedin_urn:
+                    logger.warning(f"LinkedIn not configured for user {user.email}. Content generated but not published.")
+                    content.publication_response = "LinkedIn ist nicht konfiguriert. Content wurde nur generiert."
+                else:
+                    config = {
+                        "access_token": user.linkedin_access_token,
+                        "urn": user.linkedin_urn
+                    }
+                    publisher = LinkedInPublisher(config)
+            
+            elif schedule.channel == "facebook":
+                if not user.meta_access_token or not user.facebook_page_id:
+                    logger.warning(f"Facebook not configured for user {user.email}. Content generated but not published.")
+                    content.publication_response = "Facebook ist nicht konfiguriert. Content wurde nur generiert."
+                else:
+                    config = {
+                        "access_token": user.meta_access_token,
+                        "page_id": user.facebook_page_id
+                    }
+                    publisher = FacebookPublisher(config)
+            
+            elif schedule.channel == "instagram":
+                if not user.meta_access_token or not user.instagram_business_id:
+                    logger.warning(f"Instagram not configured for user {user.email}. Content generated but not published.")
+                    content.publication_response = "Instagram ist nicht konfiguriert. Content wurde nur generiert."
+                else:
+                    config = {
+                        "access_token": user.meta_access_token,
+                        "instagram_id": user.instagram_business_id
+                    }
+                    publisher = InstagramPublisher(config)
             
             if publisher:
                 try:

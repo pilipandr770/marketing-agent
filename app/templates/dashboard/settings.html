@@ -60,6 +60,85 @@
                         </div>
                     {% endif %}
                     
+                    <!-- LinkedIn Settings -->
+                    <h6 class="text-info border-bottom pb-2 mb-3 mt-4">
+                        <i class="bi bi-linkedin"></i> LinkedIn
+                    </h6>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.linkedin_access_token.label(class="form-label") }}
+                            {{ form.linkedin_access_token(class="form-control" + (" is-invalid" if form.linkedin_access_token.errors else "")) }}
+                            <div class="form-text">
+                                LinkedIn Access Token für API-Zugriff
+                            </div>
+                            {% if form.linkedin_access_token.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.linkedin_access_token.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            {{ form.linkedin_urn.label(class="form-label") }}
+                            {{ form.linkedin_urn(class="form-control" + (" is-invalid" if form.linkedin_urn.errors else "")) }}
+                            <div class="form-text">
+                                URN der Organisation: <code>urn:li:organization:123456</code> oder Person: <code>urn:li:person:ABC123</code>
+                            </div>
+                            {% if form.linkedin_urn.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.linkedin_urn.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <!-- Meta (Facebook/Instagram) Settings -->
+                    <h6 class="text-primary border-bottom pb-2 mb-3 mt-4">
+                        <i class="bi bi-facebook"></i> / <i class="bi bi-instagram"></i> Meta (Facebook & Instagram)
+                    </h6>
+                    
+                    <div class="mb-3">
+                        {{ form.meta_access_token.label(class="form-label") }}
+                        {{ form.meta_access_token(class="form-control" + (" is-invalid" if form.meta_access_token.errors else "")) }}
+                        <div class="form-text">
+                            Long-lived Access Token von Meta Graph API (für Facebook & Instagram)
+                        </div>
+                        {% if form.meta_access_token.errors %}
+                            <div class="invalid-feedback">
+                                {{ form.meta_access_token.errors[0] }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form.facebook_page_id.label(class="form-label") }}
+                            {{ form.facebook_page_id(class="form-control" + (" is-invalid" if form.facebook_page_id.errors else "")) }}
+                            <div class="form-text">
+                                Numerische Facebook Page ID
+                            </div>
+                            {% if form.facebook_page_id.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.facebook_page_id.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            {{ form.instagram_business_id.label(class="form-label") }}
+                            {{ form.instagram_business_id(class="form-control" + (" is-invalid" if form.instagram_business_id.errors else "")) }}
+                            <div class="form-text">
+                                Instagram Business Account ID
+                            </div>
+                            {% if form.instagram_business_id.errors %}
+                                <div class="invalid-feedback">
+                                    {{ form.instagram_business_id.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
                     <!-- OpenAI Settings -->
                     <h6 class="text-success border-bottom pb-2 mb-3 mt-4">
                         <i class="bi bi-robot"></i> OpenAI / KI-Einstellungen

@@ -36,11 +36,22 @@ def settings():
     form = SettingsForm(obj=current_user)
     
     if form.validate_on_submit():
-        # Update user settings
+        # Update user settings - Telegram
         current_user.telegram_token = form.telegram_token.data.strip() if form.telegram_token.data else None
         current_user.telegram_chat_id = form.telegram_chat_id.data.strip() if form.telegram_chat_id.data else None
+        
+        # OpenAI
         current_user.openai_system_prompt = form.openai_system_prompt.data.strip() if form.openai_system_prompt.data else None
         current_user.openai_api_key = form.openai_api_key.data.strip() if form.openai_api_key.data else None
+        
+        # LinkedIn
+        current_user.linkedin_access_token = form.linkedin_access_token.data.strip() if form.linkedin_access_token.data else None
+        current_user.linkedin_urn = form.linkedin_urn.data.strip() if form.linkedin_urn.data else None
+        
+        # Meta (Facebook / Instagram)
+        current_user.meta_access_token = form.meta_access_token.data.strip() if form.meta_access_token.data else None
+        current_user.facebook_page_id = form.facebook_page_id.data.strip() if form.facebook_page_id.data else None
+        current_user.instagram_business_id = form.instagram_business_id.data.strip() if form.instagram_business_id.data else None
         
         db.session.commit()
         flash("Einstellungen erfolgreich gespeichert.", "success")
