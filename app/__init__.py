@@ -15,18 +15,31 @@ def create_app():
     app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "dev_secret_change_in_production")
     
     # Database configuration with SSL support
-    database_uri = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///marketing.db")
+    # Try DATABASE_URL first (Render's automatic variable), then SQLALCHEMY_DATABASE_URI
+    database_uri = os.getenv("SQLALCHEMY_DATABASE_URI") or os.getenv("DATABASE_URL", "sqlite:///marketing.db")
+    
+    # Fix dialect for psycopg3 if needed
+    if database_uri.startswith("postgres://"):
+        database_uri = database_uri.replace("postgres://", "postgresql+psycopg://", 1)
+    elif database_uri.startswith("postgresql://") and "+psycopg" not in database_uri:
+        database_uri = database_uri.replace("postgresql://", "postgresql+psycopg://", 1)
+    
+    # Add SSL mode if PostgreSQL and not present (for external connections)
+    if "postgresql" in database_uri and "sslmode=" not in database_uri:
+        separator = "&" if "?" in database_uri else "?"
+        database_uri = f"{database_uri}{separator}sslmode=require"
+    
     app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max file size
     
-    # Add SSL configuration for PostgreSQL connections if not in URI
-    if "postgresql" in database_uri and "sslmode" not in database_uri:
-        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-            "connect_args": {
-                "sslmode": "require"
-            }
-        }
+    # Connection pool settings for better stability
+    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+        "pool_pre_ping": True,  # Verify connections before using
+        "pool_recycle": 300,    # Recycle connections every 5 minutes
+        "pool_size": 10,        # Maximum number of connections
+        "max_overflow": 20      # Maximum overflow connections
+    }
 
     # Initialize extensions
     db.init_app(app)

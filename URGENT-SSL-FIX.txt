@@ -1,0 +1,118 @@
+╔══════════════════════════════════════════════════════════════════════════════╗
+║                     🚨 КРИТИЧЕСКАЯ ПРОБЛЕМА SSL                              ║
+║                        Требуется срочное действие!                           ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+❌ ПРОБЛЕМА:
+   Автоматическая настройка SSL в коде НЕ РАБОТАЕТ
+   Ошибка: "SSL error: decryption failed or bad record mac"
+   Ошибка: "SSL SYSCALL: EOF detected"
+   
+   Теперь НЕ РАБОТАЮТ:
+   ❌ Регистрация (раньше работала!)
+   ❌ Вход в систему
+   ❌ Все запросы к базе данных
+
+🔍 ПРИЧИНА:
+   SQLAlchemy игнорирует SQLALCHEMY_ENGINE_OPTIONS когда URI уже содержит
+   хост и порт. Connection pooling кэширует неправильные SSL настройки.
+
+✅ РЕШЕНИЕ 1: Internal Database URL (РЕКОМЕНДУЕТСЯ)
+
+   Render предоставляет ВНУТРЕННИЙ URL для подключения между сервисами
+   на той же инфраструктуре БЕЗ SSL!
+
+   ШАГИ:
+   
+   1. Откройте: https://dashboard.render.com/databases
+   
+   2. Выберите: ittoken_db
+   
+   3. Найдите секцию: "Connections"
+      Вы увидите ДВА URL:
+      
+      📍 External Database URL (для внешних подключений) - ТЕКУЩИЙ
+      postgresql://ittoken_db_user:...@dpg-d0visga4d50c73ekmu4g-a.oregon-postgres.render.com/ittoken_db
+      
+      📍 Internal Database URL (для Render сервисов) - НУЖНЫЙ!
+      postgresql://ittoken_db_user:...@dpg-d0visga4d50c73ekmu4g-a/ittoken_db
+      
+   4. СКОПИРУЙТЕ Internal Database URL
+   
+   5. Перейдите: https://dashboard.render.com
+      Выберите: marketing-agent (ваш веб-сервис)
+      
+   6. Environment → SQLALCHEMY_DATABASE_URI → Edit
+   
+   7. ВСТАВЬТЕ:
+      postgresql+psycopg://ittoken_db_user:Xm98VVSZv7cMJkopkdWRkgvZzC7Aly42@dpg-d0visga4d50c73ekmu4g-a/ittoken_db
+      
+      ⚠️ ВАЖНО: Добавьте +psycopg после postgresql
+      
+   8. Save Changes
+   
+   9. ✅ Готово! Internal URL не требует SSL!
+
+✅ РЕШЕНИЕ 2: Добавить ?sslmode=require (Альтернатива)
+
+   Если Internal URL не работает, используйте External URL с SSL:
+   
+   postgresql+psycopg://ittoken_db_user:Xm98VVSZv7cMJkopkdWRkgvZzC7Aly42@dpg-d0visga4d50c73ekmu4g-a.oregon-postgres.render.com/ittoken_db?sslmode=require
+   
+   ⚠️ НО External URL медленнее чем Internal!
+
+✅ РЕШЕНИЕ 3: Использовать DATABASE_URL от Render (Автоматический)
+
+   Render автоматически добавляет переменную DATABASE_URL для PostgreSQL:
+   
+   1. Dashboard → marketing-agent → Environment
+   
+   2. Найдите: DATABASE_URL (создаётся автоматически Render)
+   
+   3. Добавьте новую переменную:
+      Имя: SQLALCHEMY_DATABASE_URI
+      Значение: ${DATABASE_URL}?sslmode=require
+      
+   4. Или просто измените в коде app/__init__.py:
+      database_uri = os.getenv("DATABASE_URL", "").replace("postgresql://", "postgresql+psycopg://")
+      if database_uri and "?" not in database_uri:
+          database_uri += "?sslmode=require"
+
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  ВНИМАНИЕ: Автоматическая настройка SSL в коде НЕ РАБОТАЕТ!                 ║
+║  Нужно ОБЯЗАТЕЛЬНО изменить переменную окружения в Render Dashboard!        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+
+📊 РАЗНИЦА МЕЖДУ External И Internal URL:
+
+┌─────────────────────┬──────────────────────┬──────────────────────┐
+│ Параметр            │ External URL         │ Internal URL         │
+├─────────────────────┼──────────────────────┼──────────────────────┤
+│ SSL                 │ Требуется ✅         │ Не требуется ❌      │
+│ Скорость            │ Медленнее 🐌        │ Быстрее 🚀           │
+│ Латентность         │ Выше                 │ Ниже                 │
+│ Подключение         │ Через интернет       │ Внутренняя сеть      │
+│ Хост                │ .oregon-postgres.    │ Короткий хост        │
+│                     │ render.com           │                      │
+│ Использование       │ Внешние клиенты      │ Render сервисы       │
+│ Безопасность        │ SSL обязателен       │ Изолированная сеть   │
+└─────────────────────┴──────────────────────┴──────────────────────┘
+
+🎯 РЕКОМЕНДАЦИЯ:
+   Используйте Internal Database URL - это СТАНДАРТНАЯ практика для Render!
+   Все сервисы на Render должны использовать Internal URLs для БД.
+
+⏱️ ВРЕМЯ РЕШЕНИЯ: 2 минуты
+
+🔗 ПОЛЕЗНЫЕ ССЫЛКИ:
+   - Render Databases: https://dashboard.render.com/databases
+   - Ваш сервис: https://dashboard.render.com (выберите marketing-agent)
+   - Документация: https://render.com/docs/databases#connecting-to-your-database
+
+═══════════════════════════════════════════════════════════════════════════════
+
+💡 ПОСЛЕ ИСПРАВЛЕНИЯ проверьте:
+   ✅ Регистрация работает
+   ✅ Вход работает
+   ✅ Dashboard доступен
+   ✅ В логах нет ошибок SSL
