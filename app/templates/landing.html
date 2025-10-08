@@ -8,6 +8,12 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <style>
+        /* Smooth scrolling */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Hero Section with Animation */
         .hero-section {
             background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
             color: white;
@@ -26,33 +32,155 @@
             background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.1" d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,138.7C960,139,1056,117,1152,112C1248,107,1344,117,1392,122.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') no-repeat bottom;
             background-size: cover;
             opacity: 0.3;
+            animation: wave 10s ease-in-out infinite;
         }
         
+        @keyframes wave {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        /* Hero content animation */
+        .hero-section h1 {
+            animation: fadeInUp 1s ease-out;
+        }
+        
+        .hero-section .lead {
+            animation: fadeInUp 1.2s ease-out;
+        }
+        
+        .hero-section .btn {
+            animation: fadeInUp 1.4s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Feature Icons with Pulse */
         .feature-icon {
             font-size: 3rem;
             color: #0d6efd;
             margin-bottom: 1rem;
+            animation: pulse 2s ease-in-out infinite;
         }
         
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        /* Feature Cards with Modern Effects */
         .feature-card {
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             height: 100%;
             border: none;
             border-radius: 1rem;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(13, 110, 253, 0.1), transparent);
+            transition: left 0.5s;
+        }
+        
+        .feature-card:hover::before {
+            left: 100%;
         }
         
         .feature-card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            transform: translateY(-15px) scale(1.02);
+            box-shadow: 0 20px 40px rgba(13, 110, 253, 0.2);
         }
         
+        /* How It Works Section - Dark Text on Light Background */
+        .how-it-works-section {
+            background: linear-gradient(180deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 80px 0;
+        }
+        
+        .step-circle {
+            width: 80px;
+            height: 80px;
+            font-size: 2rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+            animation: bounceIn 1s ease-out;
+            transition: transform 0.3s ease;
+        }
+        
+        .step-circle:hover {
+            transform: rotate(360deg) scale(1.1);
+        }
+        
+        @keyframes bounceIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.05);
+            }
+            70% {
+                transform: scale(0.9);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        .step-content h4 {
+            color: #212529;
+            font-weight: 700;
+        }
+        
+        .step-content p {
+            color: #495057;
+            font-size: 1.1rem;
+        }
+        
+        /* CTA Section with Gradient Animation */
         .cta-section {
             background: linear-gradient(135deg, #198754 0%, #146c43 100%);
             color: white;
             padding: 80px 0;
             margin-top: 80px;
+            position: relative;
+            overflow: hidden;
         }
         
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            animation: shine 3s ease-in-out infinite;
+        }
+        
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+            100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+        }
+        
+        /* Pricing Badge with Wiggle */
         .pricing-badge {
             background-color: #ffc107;
             color: #000;
@@ -61,6 +189,93 @@
             font-weight: bold;
             display: inline-block;
             margin-bottom: 1rem;
+            animation: wiggle 1s ease-in-out infinite;
+        }
+        
+        @keyframes wiggle {
+            0%, 100% { transform: rotate(-3deg); }
+            50% { transform: rotate(3deg); }
+        }
+        
+        /* Button Hover Effects */
+        .btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Navbar Scroll Effect */
+        .navbar {
+            transition: all 0.3s ease;
+        }
+        
+        .navbar.scrolled {
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .hero-section {
+                padding: 80px 0 60px;
+            }
+            
+            .hero-section h1 {
+                font-size: 2.5rem;
+            }
+            
+            .hero-section .bi-robot {
+                font-size: 8rem !important;
+                margin-top: 2rem;
+            }
+            
+            .feature-icon {
+                font-size: 2.5rem;
+            }
+            
+            .step-circle {
+                width: 60px;
+                height: 60px;
+                font-size: 1.5rem;
+            }
+            
+            .how-it-works-section {
+                padding: 60px 0;
+            }
+        }
+        
+        /* Scroll Reveal Animation */
+        .fade-in-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+        }
+        
+        .fade-in-up.visible {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
@@ -195,41 +410,50 @@
     </section>
 
     <!-- How it works -->
-    <section id="how-it-works" class="py-5 bg-light">
+    <section id="how-it-works" class="how-it-works-section">
         <div class="container">
-            <div class="text-center mb-5">
-                <h2 class="display-5 fw-bold">So einfach funktioniert's</h2>
-                <p class="lead text-muted">In 3 Schritten zu automatisiertem Marketing</p>
+            <div class="text-center mb-5 fade-in-up">
+                <h2 class="display-5 fw-bold text-dark">So einfach funktioniert's</h2>
+                <p class="lead" style="color: #495057;">In 3 Schritten zu automatisiertem Marketing</p>
             </div>
             
-            <div class="row g-4">
+            <div class="row g-5">
                 <div class="col-md-4">
-                    <div class="text-center">
-                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold;">
-                            1
+                    <div class="text-center step-content fade-in-up">
+                        <div class="step-circle rounded-circle text-white d-inline-flex align-items-center justify-content-center mb-3">
+                            <i class="bi bi-person-plus-fill"></i>
                         </div>
-                        <h4 class="mt-3 fw-bold">Registrieren</h4>
-                        <p class="text-muted">Erstellen Sie Ihr kostenloses Konto in wenigen Sekunden.</p>
+                        <h4 class="mt-3 fw-bold">1. Registrieren</h4>
+                        <p>Erstellen Sie Ihr kostenloses Konto in wenigen Sekunden.</p>
                     </div>
                 </div>
                 
                 <div class="col-md-4">
-                    <div class="text-center">
-                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold;">
-                            2
+                    <div class="text-center step-content fade-in-up">
+                        <div class="step-circle rounded-circle text-white d-inline-flex align-items-center justify-content-center mb-3">
+                            <i class="bi bi-link-45deg"></i>
                         </div>
-                        <h4 class="mt-3 fw-bold">Verbinden</h4>
-                        <p class="text-muted">Verbinden Sie Ihre Social-Media-Kanäle und konfigurieren Sie Ihre API-Keys.</p>
+                        <h4 class="mt-3 fw-bold">2. Verbinden</h4>
+                        <p>Verbinden Sie Ihre Social-Media-Kanäle und konfigurieren Sie Ihre API-Keys.</p>
                     </div>
                 </div>
                 
                 <div class="col-md-4">
-                    <div class="text-center">
-                        <div class="rounded-circle bg-primary text-white d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2rem; font-weight: bold;">
-                            3
+                    <div class="text-center step-content fade-in-up">
+                        <div class="step-circle rounded-circle text-white d-inline-flex align-items-center justify-content-center mb-3">
+                            <i class="bi bi-rocket-takeoff-fill"></i>
                         </div>
-                        <h4 class="mt-3 fw-bold">Automatisieren</h4>
-                        <p class="text-muted">Erstellen Sie Zeitpläne und lassen Sie die KI Ihre Inhalte generieren und veröffentlichen.</p>
+                        <h4 class="mt-3 fw-bold">3. Automatisieren</h4>
+                        <p>Erstellen Sie Zeitpläne und lassen Sie die KI Ihre Inhalte generieren und veröffentlichen.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Progress Line -->
+            <div class="row mt-5">
+                <div class="col-12">
+                    <div class="progress" style="height: 4px;">
+                        <div class="progress-bar bg-primary" role="progressbar" style="width: 100%; animation: progressBar 2s ease-in-out;"></div>
                     </div>
                 </div>
             </div>
@@ -320,5 +544,75 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Scroll reveal animation
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+        
+        const observer = new IntersectionObserver(function(entries) {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                }
+            });
+        }, observerOptions);
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // Observe all fade-in elements
+            const fadeElements = document.querySelectorAll('.fade-in-up');
+            fadeElements.forEach(el => observer.observe(el));
+            
+            // Navbar scroll effect
+            const navbar = document.querySelector('.navbar');
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+            
+            // Smooth scroll for anchor links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start'
+                        });
+                    }
+                });
+            });
+            
+            // Add stagger animation to feature cards
+            const featureCards = document.querySelectorAll('.feature-card');
+            featureCards.forEach((card, index) => {
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.classList.add('fade-in-up');
+                observer.observe(card);
+            });
+            
+            // Add animation to step circles
+            const stepCircles = document.querySelectorAll('.step-circle');
+            stepCircles.forEach((circle, index) => {
+                circle.style.animationDelay = `${index * 0.2}s`;
+            });
+        });
+        
+        // Progress bar animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes progressBar {
+                from { width: 0%; }
+                to { width: 100%; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
 </body>
 </html>
