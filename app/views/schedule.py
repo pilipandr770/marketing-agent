@@ -15,6 +15,16 @@ def index():
     form = ScheduleForm()
     
     if form.validate_on_submit():
+        # Check if selected channel is configured
+        channel = form.channel.data
+        channel_configured = True
+        warning_msg = None
+        
+        if channel == "telegram":
+            if not current_user.telegram_token or not current_user.telegram_chat_id:
+                channel_configured = False
+                warning_msg = "Warnung: Telegram ist nicht konfiguriert. Content wird generiert, aber nicht automatisch veröffentlicht."
+        
         schedule = Schedule(
             user_id=current_user.id,
             channel=form.channel.data,
@@ -30,13 +40,22 @@ def index():
         db.session.commit()
         
         flash("Zeitplan erfolgreich erstellt.", "success")
+        if not channel_configured and warning_msg:
+            flash(warning_msg, "warning")
+        
         return redirect(url_for("schedule.index"))
     
     # Get user's schedules
     schedules = Schedule.query.filter_by(user_id=current_user.id)\
                             .order_by(Schedule.created_at.desc()).all()
     
-    return render_template("schedule/index.html", form=form, schedules=schedules)
+    # Check channel configurations for display
+    telegram_configured = bool(current_user.telegram_token and current_user.telegram_chat_id)
+    
+    return render_template("schedule/index.html", 
+                          form=form, 
+                          schedules=schedules,
+                          telegram_configured=telegram_configured)
 
 @schedule_bp.route("/edit/<int:schedule_id>", methods=["GET", "POST"])
 @login_required
@@ -103,10 +122,19 @@ def run_now(schedule_id):
         user_id=current_user.id
     ).first_or_404()
     
-    if schedule_job(schedule_id):
-        flash("Zeitplan wird ausgeführt...", "info")
-    else:
-        flash("Fehler beim Ausführen des Zeitplans.", "danger")
+    # Check if channel is configured
+    if schedule.channel == "telegram":
+        if not current_user.telegram_token or not current_user.telegram_chat_id:
+            flash("Telegram ist nicht konfiguriert. Bitte fügen Sie Bot Token und Chat ID in den Einstellungen hinzu.", "warning")
+            return redirect(url_for("schedule.index"))
+    
+    try:
+        if schedule_job(schedule_id):
+            flash("Zeitplan wird ausgeführt... Überprüfen Sie Ihren Kanal in wenigen Sekunden.", "success")
+        else:
+            flash("Fehler beim Ausführen des Zeitplans. Scheduler möglicherweise nicht initialisiert.", "danger")
+    except Exception as e:
+        flash(f"Fehler beim Ausführen des Zeitplans: {str(e)}", "danger")
     
     return redirect(url_for("schedule.index"))
 

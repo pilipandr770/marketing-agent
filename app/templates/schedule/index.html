@@ -11,6 +11,16 @@
     </div>
 </div>
 
+<!-- Channel Configuration Warning -->
+{% if not telegram_configured %}
+<div class="alert alert-warning alert-dismissible fade show" role="alert">
+    <i class="bi bi-exclamation-triangle"></i>
+    <strong>Telegram nicht konfiguriert:</strong> Um automatische Veröffentlichung zu aktivieren, konfigurieren Sie Telegram in den 
+    <a href="{{ url_for('dashboard.settings') }}" class="alert-link">Einstellungen</a>.
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+</div>
+{% endif %}
+
 <!-- Add New Schedule -->
 <div class="card mb-4">
     <div class="card-header">
@@ -23,7 +33,8 @@
             <div class="row mb-3">
                 <div class="col-md-3">
                     {{ form.channel.label(class="form-label") }}
-                    {{ form.channel(class="form-select") }}
+                    {{ form.channel(class="form-select", id="channelSelect") }}
+                    <small class="form-text text-muted" id="channelStatus"></small>
                 </div>
                 <div class="col-md-6">
                     {{ form.cron_expression.label(class="form-label") }}
@@ -183,6 +194,31 @@
 document.addEventListener('DOMContentLoaded', function() {
     const cronInput = document.getElementById('cronInput');
     const cronPreview = document.getElementById('cronPreview');
+    const channelSelect = document.getElementById('channelSelect');
+    const channelStatus = document.getElementById('channelStatus');
+    
+    // Channel configuration status
+    const channelConfig = {
+        telegram: {{ 'true' if telegram_configured else 'false' }},
+        facebook: false,
+        linkedin: false,
+        instagram: false
+    };
+    
+    // Update channel status on change
+    if (channelSelect && channelStatus) {
+        function updateChannelStatus() {
+            const selected = channelSelect.value;
+            if (channelConfig[selected]) {
+                channelStatus.innerHTML = '<span class="text-success"><i class="bi bi-check-circle"></i> Konfiguriert</span>';
+            } else {
+                channelStatus.innerHTML = '<span class="text-warning"><i class="bi bi-exclamation-triangle"></i> Nicht konfiguriert - Content wird nur generiert</span>';
+            }
+        }
+        
+        channelSelect.addEventListener('change', updateChannelStatus);
+        updateChannelStatus(); // Initial update
+    }
     
     if (cronInput) {
         cronInput.addEventListener('input', function() {

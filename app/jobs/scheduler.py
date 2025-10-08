@@ -151,6 +151,11 @@ def execute_scheduled_post(schedule_id, app):
             
             logger.info(f"Executing scheduled post for user {user.email}, schedule {schedule.id}")
             
+            # Check if user has OpenAI API key
+            if not user.openai_api_key and not os.getenv("OPENAI_API_KEY"):
+                logger.error(f"No OpenAI API key configured for user {user.email}")
+                raise ValueError("OpenAI API key not configured")
+            
             # Build system prompt
             system_prompt = build_system_prompt(user.openai_system_prompt, schedule.channel)
             
@@ -182,12 +187,16 @@ def execute_scheduled_post(schedule_id, app):
             
             # Publish to channel
             publisher = None
-            if schedule.channel == "telegram" and user.telegram_token and user.telegram_chat_id:
-                config = {
-                    "bot_token": user.telegram_token,
-                    "chat_id": user.telegram_chat_id
-                }
-                publisher = TelegramPublisher(config)
+            if schedule.channel == "telegram":
+                if not user.telegram_token or not user.telegram_chat_id:
+                    logger.warning(f"Telegram not configured for user {user.email}. Content generated but not published.")
+                    content.publication_response = "Telegram ist nicht konfiguriert. Content wurde nur generiert."
+                else:
+                    config = {
+                        "bot_token": user.telegram_token,
+                        "chat_id": user.telegram_chat_id
+                    }
+                    publisher = TelegramPublisher(config)
             
             if publisher:
                 try:
