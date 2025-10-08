@@ -32,6 +32,7 @@ instance/
 
 # Environment Variables
 .env
+render-env-variables.txt
 
 # Database
 *.db
