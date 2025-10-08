@@ -1,15 +1,11 @@
 # file: run.py
-from app import create_app, db
+from app import create_app
 
 app = create_app()
 
-# Ensure database tables exist on startup (for production)
-with app.app_context():
-    try:
-        db.create_all()
-        print("✅ Database tables verified/created successfully!")
-    except Exception as e:
-        print(f"⚠️ Error with database tables: {e}")
+# Note: Database migrations are handled by Flask-Migrate during build process
+# See build.sh for migration commands (flask db upgrade)
+# DO NOT use db.create_all() in production - it bypasses migrations!
 
 if __name__ == "__main__":
     # For development - use flask run in production
