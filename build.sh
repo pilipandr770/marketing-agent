@@ -6,5 +6,12 @@ set -o errexit
 pip install --upgrade pip
 pip install -r requirements.txt
 
+# Initialize database if needed
+# Check if migrations exist, if not create them
+if [ ! -d "migrations" ]; then
+    flask db init
+    flask db migrate -m "Initial migration"
+fi
+
 # Run database migrations
 flask db upgrade
