@@ -3,6 +3,7 @@ import os
 import base64
 from typing import Optional, Tuple, Dict, Any
 from openai import OpenAI
+import httpx
 import logging
 
 logger = logging.getLogger(__name__)
@@ -14,13 +15,20 @@ def get_openai_client(user_api_key: Optional[str] = None) -> OpenAI:
         raise ValueError("No OpenAI API key available")
     
     try:
-        # Try to create client without deprecated parameters
-        return OpenAI(api_key=api_key)
-    except TypeError as e:
-        # If there's a type error about proxies, try without it
+        # Create custom HTTP client without proxies parameter
+        http_client = httpx.Client(
+            timeout=60.0,
+            limits=httpx.Limits(max_keepalive_connections=5, max_connections=10)
+        )
+        return OpenAI(api_key=api_key, http_client=http_client)
+    except Exception as e:
         logger.warning(f"OpenAI client initialization error: {e}")
-        # Fallback: create with minimal parameters
-        return OpenAI(api_key=api_key)
+        # Fallback: try default initialization
+        try:
+            return OpenAI(api_key=api_key)
+        except Exception as fallback_error:
+            logger.error(f"OpenAI client fallback error: {fallback_error}")
+            raise
 
 def build_system_prompt(user_system_prompt: Optional[str], channel: str) -> str:
     """Build system prompt based on channel and user preferences"""
