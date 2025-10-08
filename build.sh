@@ -1,5 +1,40 @@
 #!/usr/bin/env bash
-# exit on error
+# eecho "🚀 Applying database migrations..."
+# Run migrations (will create/update tables)
+flask db upgrade
+
+echo "🔧 Applying manual migration for LinkedIn and Meta fields..."
+# Apply manual SQL migration (idempotent - safe to run multiple times)
+if [ -f "manual_migration.sql" ]; then
+    python -c "
+import os
+import psycopg
+from urllib.parse import urlparse
+
+# Parse DATABASE_URL
+db_url = os.getenv('DATABASE_URL')
+if db_url:
+    # Read SQL file
+    with open('manual_migration.sql', 'r') as f:
+        sql = f.read()
+    
+    # Execute SQL
+    try:
+        conn = psycopg.connect(db_url)
+        cursor = conn.cursor()
+        cursor.execute(sql)
+        conn.commit()
+        cursor.close()
+        conn.close()
+        print('✅ Manual migration applied successfully')
+    except Exception as e:
+        print(f'⚠️ Manual migration warning: {e}')
+else:
+    print('⚠️ DATABASE_URL not set, skipping manual migration')
+"
+fi
+
+echo "✅ Build completed successfully!"n error
 set -o errexit
 
 echo "🔧 Installing dependencies..."
