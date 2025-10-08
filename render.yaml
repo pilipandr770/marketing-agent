@@ -3,7 +3,7 @@ services:
     name: marketing-agent
     runtime: python
     buildCommand: "./build.sh"
-    startCommand: "gunicorn run:app"
+    startCommand: "gunicorn run:app -c gunicorn.conf.py"
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.0
