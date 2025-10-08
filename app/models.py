@@ -4,6 +4,8 @@ from flask_login import UserMixin
 from .extensions import db
 
 class User(db.Model, UserMixin):
+    __table_args__ = {'schema': 'marketing_agent'}
+    
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(320), unique=True, nullable=False, index=True)
     password_hash = db.Column(db.String(256), nullable=False)
@@ -36,8 +38,10 @@ class User(db.Model, UserMixin):
         return Schedule.query.filter_by(user_id=self.id, active=True).all()
 
 class Schedule(db.Model):
+    __table_args__ = {'schema': 'marketing_agent'}
+    
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("marketing_agent.user.id"), nullable=False)
     
     # Scheduling configuration
     cron_expression = db.Column(db.String(64), nullable=False)  # CRON format or ISO datetime
@@ -64,8 +68,10 @@ class Schedule(db.Model):
         return f'<Schedule {self.id}: {self.channel} - {self.cron_expression}>'
 
 class FileAsset(db.Model):
+    __table_args__ = {'schema': 'marketing_agent'}
+    
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("marketing_agent.user.id"), nullable=False)
     
     # File information
     filename = db.Column(db.String(255), nullable=False)
@@ -87,9 +93,11 @@ class FileAsset(db.Model):
 
 class GeneratedContent(db.Model):
     """Store generated content for reuse and analytics"""
+    __table_args__ = {'schema': 'marketing_agent'}
+    
     id = db.Column(db.Integer, primary_key=True)
-    user_id = db.Column(db.Integer, db.ForeignKey("user.id"), nullable=False)
-    schedule_id = db.Column(db.Integer, db.ForeignKey("schedule.id"), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey("marketing_agent.user.id"), nullable=False)
+    schedule_id = db.Column(db.Integer, db.ForeignKey("marketing_agent.schedule.id"), nullable=True)
     
     # Generated content
     text_content = db.Column(db.Text, nullable=False)
