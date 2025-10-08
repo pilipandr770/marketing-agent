@@ -58,10 +58,20 @@ class ScheduleForm(FlaskForm):
     submit = SubmitField("Zeitplan speichern")
 
     def validate_cron_expression(self, field):
-        # Basic CRON validation (5 parts)
-        cron_pattern = r'^(\*|[0-5]?\d)\s+(\*|[01]?\d|2[0-3])\s+(\*|[12]?\d|3[01])\s+(\*|[1-9]|1[0-2])\s+(\*|[0-6])$'
-        if not re.match(cron_pattern, field.data.strip()):
-            raise ValidationError("Ungültiges CRON-Format. Verwenden Sie: Minute Stunde Tag Monat Wochentag")
+        # More flexible CRON validation supporting *, ranges, steps, lists
+        # Format: Minute Hour Day Month Weekday
+        cron_parts = field.data.strip().split()
+        
+        if len(cron_parts) != 5:
+            raise ValidationError("CRON-Ausdruck muss genau 5 Felder haben: Minute Stunde Tag Monat Wochentag")
+        
+        # Allow *, numbers, ranges (1-5), steps (*/5), lists (1,2,3)
+        cron_field_pattern = r'^(\*|[0-9]+(-[0-9]+)?(,[0-9]+(-[0-9]+)?)*|\*/[0-9]+)$'
+        
+        for i, part in enumerate(cron_parts):
+            if not re.match(cron_field_pattern, part):
+                field_names = ["Minute", "Stunde", "Tag", "Monat", "Wochentag"]
+                raise ValidationError(f"Ungültiges Format im Feld '{field_names[i]}': {part}")
 
 class GenerateContentForm(FlaskForm):
     topic = StringField("Thema/Briefing", validators=[DataRequired()],

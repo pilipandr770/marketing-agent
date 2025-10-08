@@ -18,31 +18,52 @@ class TelegramPublisher(BasePublisher):
                 raise ValueError(f"Missing required Telegram config: {field}")
         
         self.bot_token = self.config['bot_token']
-        self.chat_id = self.config['chat_id']
+        self.chat_id = str(self.config['chat_id']).strip()
+        
+        # Normalize chat_id format
+        # If it's a channel name without @, add it
+        if self.chat_id and not self.chat_id.startswith('@') and not self.chat_id.startswith('-') and not self.chat_id.isdigit():
+            self.chat_id = f"@{self.chat_id}"
+        
         self.base_url = f"https://api.telegram.org/bot{self.bot_token}"
+        logger.info(f"Telegram publisher initialized for chat_id: {self.chat_id}")
     
     def _make_request(self, method: str, data: Dict[str, Any], files: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
         """Make API request to Telegram"""
         url = f"{self.base_url}/{method}"
         
         try:
+            logger.info(f"Sending Telegram request to {method} for chat_id: {data.get('chat_id')}")
+            
             if files:
                 response = requests.post(url, data=data, files=files, timeout=30)
             else:
                 response = requests.post(url, json=data, timeout=30)
             
+            # Check for Telegram API errors even with 200 status
+            response_data = response.json()
+            if not response_data.get('ok'):
+                error_msg = response_data.get('description', 'Unknown Telegram API error')
+                logger.error(f"Telegram API returned error: {error_msg}")
+                return {
+                    "success": False,
+                    "error": error_msg,
+                    "platform": "Telegram"
+                }
+            
             response.raise_for_status()
+            logger.info(f"Telegram message sent successfully to {data.get('chat_id')}")
             return {
                 "success": True,
-                "response": response.json(),
+                "response": response_data,
                 "platform": "Telegram"
             }
         
         except requests.RequestException as e:
-            logger.error(f"Telegram API error: {e}")
+            logger.error(f"Telegram API network error: {e}")
             return {
                 "success": False,
-                "error": str(e),
+                "error": f"Network error: {str(e)}",
                 "platform": "Telegram"
             }
     

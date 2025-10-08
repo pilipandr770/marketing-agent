@@ -38,7 +38,9 @@
                             {{ form.telegram_chat_id.label(class="form-label") }}
                             {{ form.telegram_chat_id(class="form-control" + (" is-invalid" if form.telegram_chat_id.errors else "")) }}
                             <div class="form-text">
-                                {{ form.telegram_chat_id.description }}
+                                <strong>Für Kanäle:</strong> <code>@kanalname</code> (öffentlich) oder <code>-100xxxxxxxxxx</code> (privat)<br>
+                                <strong>Für Gruppen:</strong> <code>-xxxxxxxxx</code><br>
+                                <strong>Für private Chats:</strong> Numerische User-ID
                             </div>
                             {% if form.telegram_chat_id.errors %}
                                 <div class="invalid-feedback">
