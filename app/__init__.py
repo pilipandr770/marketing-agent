@@ -13,9 +13,20 @@ def create_app():
     
     # Configuration
     app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "dev_secret_change_in_production")
-    app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///marketing.db")
+    
+    # Database configuration with SSL support
+    database_uri = os.getenv("SQLALCHEMY_DATABASE_URI", "sqlite:///marketing.db")
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max file size
+    
+    # Add SSL configuration for PostgreSQL connections if not in URI
+    if "postgresql" in database_uri and "sslmode" not in database_uri:
+        app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
+            "connect_args": {
+                "sslmode": "require"
+            }
+        }
 
     # Initialize extensions
     db.init_app(app)
