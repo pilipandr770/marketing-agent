@@ -92,11 +92,20 @@
     </main>
 
     <!-- Footer -->
-    <footer class="mt-5 py-4 bg-light text-center">
+    <footer class="mt-5 py-4 bg-light">
         <div class="container">
-            <p class="text-muted mb-0">
-                &copy; 2024 Marketing Automation SaaS. Entwickelt für moderne Unternehmer.
-            </p>
+            <div class="row">
+                <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+                    <p class="text-muted mb-0">
+                        &copy; 2025 AndriiIT. Alle Rechte vorbehalten.
+                    </p>
+                </div>
+                <div class="col-md-6 text-center text-md-end">
+                    <a href="{{ url_for('public.datenschutz') }}" class="text-muted text-decoration-none me-3">Datenschutz</a>
+                    <a href="{{ url_for('public.agb') }}" class="text-muted text-decoration-none me-3">AGB</a>
+                    <a href="{{ url_for('public.impressum') }}" class="text-muted text-decoration-none">Impressum</a>
+                </div>
+            </div>
         </div>
     </footer>
 

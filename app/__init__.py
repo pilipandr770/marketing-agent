@@ -25,6 +25,7 @@ def create_app():
 
     # Register blueprints (will be imported after models are defined)
     with app.app_context():
+        from .views.public import public_bp
         from .views.auth import auth_bp
         from .views.dashboard import dashboard_bp
         from .views.schedule import schedule_bp
@@ -32,6 +33,7 @@ def create_app():
         from .views.files import files_bp
         from .billing.webhook import billing_bp
         
+        app.register_blueprint(public_bp)
         app.register_blueprint(auth_bp)
         app.register_blueprint(dashboard_bp)
         app.register_blueprint(schedule_bp)
