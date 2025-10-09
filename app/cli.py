@@ -23,6 +23,15 @@ def apply_manual_migration():
         click.echo('❌ No database URL found in config')
         return
     
+    # Clean up URL for psycopg (remove SQLAlchemy dialect markers)
+    # postgresql+psycopg://... -> postgresql://...
+    if '+psycopg' in db_url:
+        db_url = db_url.replace('+psycopg', '')
+    
+    # Also handle postgres:// (old Heroku style)
+    if db_url.startswith('postgres://'):
+        db_url = db_url.replace('postgres://', 'postgresql://', 1)
+    
     # Read SQL file from project root (not app directory)
     project_root = os.path.dirname(os.path.dirname(__file__))
     sql_file = os.path.join(project_root, 'manual_migration.sql')
