@@ -56,6 +56,7 @@ def create_app():
         from .views.content import content_bp
         from .views.files import files_bp
         from .billing.webhook import billing_bp
+        from .linkedin_oauth import linkedin_bp
         
         app.register_blueprint(public_bp)
         app.register_blueprint(auth_bp)
@@ -64,6 +65,7 @@ def create_app():
         app.register_blueprint(content_bp)
         app.register_blueprint(files_bp)
         app.register_blueprint(billing_bp, url_prefix="/billing")
+        app.register_blueprint(linkedin_bp)
 
         # Initialize scheduler
         init_scheduler(app)

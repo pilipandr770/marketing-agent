@@ -65,12 +65,39 @@
                         <i class="bi bi-linkedin"></i> LinkedIn
                     </h6>
                     
+                    {% if current_user.linkedin_access_token %}
+                    <div class="alert alert-success d-flex align-items-center mb-3">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <div class="flex-grow-1">
+                            <strong>LinkedIn підключено!</strong><br>
+                            <small class="text-muted">URN: {{ current_user.linkedin_urn }}</small>
+                        </div>
+                        <a href="{{ url_for('linkedin.disconnect') }}" class="btn btn-sm btn-outline-danger">
+                            <i class="bi bi-x-circle"></i> Відключити
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-info mb-3">
+                        <i class="bi bi-info-circle"></i> 
+                        LinkedIn не підключено. Натисніть кнопку нижче для авторизації через OAuth 2.0.
+                    </div>
+                    <div class="mb-3">
+                        <a href="{{ url_for('linkedin.auth') }}" class="btn btn-primary">
+                            <i class="bi bi-linkedin"></i> Підключити LinkedIn
+                        </a>
+                    </div>
+                    {% endif %}
+                    
                     <div class="row mb-3">
                         <div class="col-md-6">
                             {{ form.linkedin_access_token.label(class="form-label") }}
-                            {{ form.linkedin_access_token(class="form-control" + (" is-invalid" if form.linkedin_access_token.errors else "")) }}
+                            {{ form.linkedin_access_token(class="form-control" + (" is-invalid" if form.linkedin_access_token.errors else ""), readonly=current_user.linkedin_access_token) }}
                             <div class="form-text">
-                                LinkedIn Access Token für API-Zugriff
+                                {% if current_user.linkedin_access_token %}
+                                Токен отримано через OAuth (тільки для читання)
+                                {% else %}
+                                Або вставте токен вручну (не рекомендується)
+                                {% endif %}
                             </div>
                             {% if form.linkedin_access_token.errors %}
                                 <div class="invalid-feedback">
@@ -81,9 +108,13 @@
                         
                         <div class="col-md-6">
                             {{ form.linkedin_urn.label(class="form-label") }}
-                            {{ form.linkedin_urn(class="form-control" + (" is-invalid" if form.linkedin_urn.errors else "")) }}
+                            {{ form.linkedin_urn(class="form-control" + (" is-invalid" if form.linkedin_urn.errors else ""), readonly=current_user.linkedin_urn) }}
                             <div class="form-text">
-                                URN der Organisation: <code>urn:li:organization:123456</code> oder Person: <code>urn:li:person:ABC123</code>
+                                {% if current_user.linkedin_urn %}
+                                URN отримано через OAuth (тільки для читання)
+                                {% else %}
+                                Формат: <code>urn:li:organization:123456</code> або <code>urn:li:person:ABC123</code>
+                                {% endif %}
                             </div>
                             {% if form.linkedin_urn.errors %}
                                 <div class="invalid-feedback">
