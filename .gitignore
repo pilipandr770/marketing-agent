@@ -40,7 +40,7 @@ render-env-variables.txt
 *.sqlite3
 
 # IDE
-.vscode/
+# .vscode/  - Keeping for team to share Jinja2 settings
 .idea/
 *.swp
 *.swo
