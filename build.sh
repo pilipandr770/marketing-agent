@@ -9,10 +9,10 @@ if [ -f "manual_migration.sql" ]; then
     python -c "
 import os
 import psycopg
-from urllib.parse import urlparse
 
-# Parse DATABASE_URL
-db_url = os.getenv('DATABASE_URL')
+# Try DATABASE_URL first, then SQLALCHEMY_DATABASE_URI
+db_url = os.getenv('DATABASE_URL') or os.getenv('SQLALCHEMY_DATABASE_URI')
+
 if db_url:
     # Read SQL file
     with open('manual_migration.sql', 'r') as f:
@@ -28,10 +28,14 @@ if db_url:
         conn.close()
         print('✅ Manual migration applied successfully')
     except Exception as e:
-        print(f'⚠️ Manual migration warning: {e}')
+        print(f'⚠️ Manual migration error: {e}')
+        import traceback
+        traceback.print_exc()
 else:
-    print('⚠️ DATABASE_URL not set, skipping manual migration')
+    print('⚠️ No database URL found, skipping manual migration')
 "
+else
+    echo "⚠️ manual_migration.sql not found"
 fi
 
 echo "✅ Build completed successfully!"n error
