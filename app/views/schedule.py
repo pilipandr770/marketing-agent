@@ -50,12 +50,18 @@ def index():
                             .order_by(Schedule.created_at.desc()).all()
     
     # Check channel configurations for display
-    telegram_configured = bool(current_user.telegram_token and current_user.telegram_chat_id)
+    import json
+    channel_config = {
+        'telegram': bool(current_user.telegram_token and current_user.telegram_chat_id),
+        'linkedin': bool(current_user.linkedin_access_token and current_user.linkedin_urn),
+        'facebook': bool(current_user.meta_access_token and current_user.facebook_page_id),
+        'instagram': bool(current_user.meta_access_token and current_user.instagram_business_id)
+    }
     
     return render_template("schedule/index.html", 
                           form=form, 
                           schedules=schedules,
-                          telegram_configured=telegram_configured)
+                          channel_config_json=json.dumps(channel_config))
 
 @schedule_bp.route("/edit/<int:schedule_id>", methods=["GET", "POST"])
 @login_required

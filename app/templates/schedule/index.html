@@ -191,19 +191,15 @@
 
 {% block extra_js %}
 <script>
+// @ts-nocheck - Jinja2 template syntax
 document.addEventListener('DOMContentLoaded', function() {
     const cronInput = document.getElementById('cronInput');
     const cronPreview = document.getElementById('cronPreview');
     const channelSelect = document.getElementById('channelSelect');
     const channelStatus = document.getElementById('channelStatus');
     
-    // Channel configuration status
-    const channelConfig = {
-        telegram: {{ 'true' if telegram_configured else 'false' }},
-        facebook: false,
-        linkedin: false,
-        instagram: false
-    };
+    // Channel configuration status (from server)
+    const channelConfig = {{ channel_config_json|safe }};
     
     // Update channel status on change
     if (channelSelect && channelStatus) {
