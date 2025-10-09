@@ -67,6 +67,10 @@ def create_app():
 
         # Initialize scheduler
         init_scheduler(app)
+        
+        # Register CLI commands
+        from . import cli
+        cli.init_app(app)
 
     @app.context_processor
     def inject_globals():
