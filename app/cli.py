@@ -23,11 +23,14 @@ def apply_manual_migration():
         click.echo('❌ No database URL found in config')
         return
     
-    # Read SQL file
-    sql_file = os.path.join(os.path.dirname(__file__), 'manual_migration.sql')
+    # Read SQL file from project root (not app directory)
+    project_root = os.path.dirname(os.path.dirname(__file__))
+    sql_file = os.path.join(project_root, 'manual_migration.sql')
     
     if not os.path.exists(sql_file):
         click.echo(f'❌ SQL file not found: {sql_file}')
+        click.echo(f'   Current directory: {os.getcwd()}')
+        click.echo(f'   Project root: {project_root}')
         return
     
     with open(sql_file, 'r') as f:
