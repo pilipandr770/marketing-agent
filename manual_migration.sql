@@ -1,6 +1,9 @@
 -- Manual migration to add LinkedIn and Meta fields
 -- Run this if automatic migration fails
 
+-- Set search path to marketing_agent schema
+SET search_path TO marketing_agent;
+
 -- Add linkedin_urn field (if not exists)
 DO $$
 BEGIN
