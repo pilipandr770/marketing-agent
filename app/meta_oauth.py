@@ -8,12 +8,15 @@ import os
 import secrets
 import requests
 import logging
-from flask import Blueprint, request, redirect, url_for, flash, session
+from flask import Blueprint, request, redirect, url_for, flash, session, current_app
 from flask_login import login_required, current_user
+from itsdangerous import URLSafeTimedSerializer
 from .extensions import db
 from .models import User
 
 logger = logging.getLogger(__name__)
+
+meta_bp = Blueprint('meta', __name__, url_prefix='/meta')
 
 meta_bp = Blueprint('meta', __name__, url_prefix='/meta')
 
@@ -44,6 +47,22 @@ def get_oauth_config():
         "app_secret": app_secret,
         "redirect_uri": redirect_uri or url_for('meta.callback', _external=True)
     }
+
+
+def generate_state_token():
+    """Generate a signed state token for CSRF protection"""
+    serializer = URLSafeTimedSerializer(current_app.secret_key)
+    return serializer.dumps({'user_id': current_user.id, 'timestamp': secrets.token_hex(16)})
+
+
+def verify_state_token(token):
+    """Verify a signed state token"""
+    try:
+        serializer = URLSafeTimedSerializer(current_app.secret_key)
+        data = serializer.loads(token, max_age=300)  # 5 minutes expiry
+        return data.get('user_id') == current_user.id
+    except Exception:
+        return False
 
 
 def exchange_for_long_lived_token(short_lived_token: str) -> str:
@@ -98,11 +117,10 @@ def auth():
     """
     try:
         config = get_oauth_config()
-
-        # Generate and store state token for CSRF protection
-        state = secrets.token_urlsafe(32)
-        session['meta_oauth_state'] = state
-
+        
+        # Generate signed state token for CSRF protection
+        state = generate_state_token()
+        
         # Build authorization URL
         params = {
             "client_id": config["app_id"],
@@ -111,18 +129,16 @@ def auth():
             "scope": ",".join(SCOPES),
             "response_type": "code"
         }
-
+        
         auth_url = f"{AUTHORIZATION_URL}?{'&'.join([f'{k}={v}' for k, v in params.items()])}"
         logger.info(f"Redirecting user {current_user.id} to Meta OAuth")
-
+        
         return redirect(auth_url)
-
+    
     except Exception as e:
         logger.error(f"Meta OAuth initiation failed: {e}")
         flash("Помилка при підключенні до Meta", "danger")
         return redirect(url_for('dashboard.settings'))
-
-
 @meta_bp.route('/callback')
 @login_required
 def callback():
@@ -131,19 +147,17 @@ def callback():
     Exchange authorization code for access token.
     """
     try:
-        # Verify state token (CSRF protection)
+        # Verify signed state token (CSRF protection)
         state = request.args.get('state')
-        stored_state = session.pop('meta_oauth_state', None)
-
-        if not state or state != stored_state:
+        if not state or not verify_state_token(state):
             raise ValueError("Invalid state parameter - possible CSRF attack")
-
+        
         # Check for errors
         error = request.args.get('error')
         if error:
             error_description = request.args.get('error_description', 'Unknown error')
             raise ValueError(f"Meta OAuth error: {error} - {error_description}")
-
+        
         # Get authorization code
         code = request.args.get('code')
         if not code:
@@ -160,9 +174,7 @@ def callback():
                 "code": code
             },
             timeout=30
-        )
-
-        if token_response.status_code != 200:
+        )        if token_response.status_code != 200:
             raise ValueError(f"Token exchange failed: {token_response.text}")
 
         token_data = token_response.json()

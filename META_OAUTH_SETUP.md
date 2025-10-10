@@ -38,13 +38,19 @@ After creating the app:
 
 1. In left menu, click **"Add Product"** → **"Facebook Login"**
 2. Choose **"Web"**
-3. Add your domain: `https://your-app-name.onrender.com`
+3. Add your domain: `https://marketing-agent-p4ig.onrender.com`
 4. In **"Facebook Login"** → **"Settings"**:
    - **Valid OAuth Redirect URIs**:
      ```
-     https://your-app-name.onrender.com/meta/callback
+     https://marketing-agent-p4ig.onrender.com/meta/callback
      ```
-5. Save changes
+5. **Important**: Add your domain to **"App Domains"**:
+   - Go to **"Settings"** → **"Basic"**
+   - In **"App Domains"** field, add:
+     ```
+     marketing-agent-p4ig.onrender.com
+     ```
+6. Save changes
 
 ---
 
