@@ -54,12 +54,20 @@ def settings():
         # Meta (Facebook / Instagram)
         meta_token = form.meta_access_token.data.strip() if form.meta_access_token.data else None
         if meta_token:
+            logger.info(f"Processing Meta token, length: {len(meta_token)}")
             # Try to exchange for long-lived token if credentials are available
             try:
                 from .meta_oauth import exchange_for_long_lived_token
+                old_token = meta_token
                 meta_token = exchange_for_long_lived_token(meta_token)
+                if meta_token != old_token:
+                    logger.info("Meta token was successfully exchanged for long-lived token")
+                else:
+                    logger.warning("Meta token exchange failed, using original token")
             except Exception as e:
                 logger.warning(f"Could not exchange Meta token for long-lived: {e}")
+        else:
+            logger.info("No Meta token provided")
         
         current_user.meta_access_token = meta_token
         current_user.facebook_page_id = form.facebook_page_id.data.strip() if form.facebook_page_id.data else None

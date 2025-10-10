@@ -58,6 +58,10 @@ def exchange_for_long_lived_token(short_lived_token: str) -> str:
     """
     config = get_oauth_config()
     
+    logger.info("Attempting to exchange short-lived token for long-lived token")
+    logger.info(f"META_APP_ID present: {bool(config.get('app_id'))}")
+    logger.info(f"META_APP_SECRET present: {bool(config.get('app_secret'))}")
+    
     try:
         response = requests.get(
             TOKEN_URL,
@@ -70,6 +74,8 @@ def exchange_for_long_lived_token(short_lived_token: str) -> str:
             timeout=30
         )
         
+        logger.info(f"Token exchange response status: {response.status_code}")
+        
         if response.status_code == 200:
             data = response.json()
             long_lived_token = data.get("access_token")
@@ -81,6 +87,7 @@ def exchange_for_long_lived_token(short_lived_token: str) -> str:
     except Exception as e:
         logger.error(f"Error exchanging token: {e}")
     
+    logger.info("Returning original token (exchange failed)")
     return short_lived_token  # Return original token if exchange fails
 @meta_bp.route('/auth')
 @login_required

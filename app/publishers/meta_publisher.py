@@ -124,7 +124,10 @@ class FacebookPublisher(BasePublisher):
         if video_path:
             return self.publish_video(text, video_path, **kwargs)
         elif image_b64:
-            return self.publish_image(text, image_b64, **kwargs)
+            # Remove image_b64 from kwargs to avoid duplicate argument error
+            kwargs_copy = kwargs.copy()
+            kwargs_copy.pop('image_b64', None)
+            return self.publish_image(text, image_b64, **kwargs_copy)
         else:
             return self.publish_text(text, **kwargs)
 
@@ -249,6 +252,9 @@ class InstagramPublisher(BasePublisher):
         if video_path:
             return self.publish_video(text, video_path, **kwargs)
         elif image_b64 or remote_url:
-            return self.publish_image(text, image_b64, **kwargs)
+            # Remove image_b64 from kwargs to avoid duplicate argument error
+            kwargs_copy = kwargs.copy()
+            kwargs_copy.pop('image_b64', None)
+            return self.publish_image(text, image_b64, **kwargs_copy)
         else:
             return self.publish_text(text, **kwargs)
