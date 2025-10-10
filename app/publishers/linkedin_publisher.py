@@ -81,7 +81,7 @@ class LinkedInPublisher(BasePublisher):
                 "platform": "LinkedIn"
             }
 
-    def publish_image(self, text: str, image_b64: Optional[str], **kwargs) -> Dict[str, Any]:
+    def publish_image(self, text: str, image_b64: str, **kwargs) -> Dict[str, Any]:
         """
         Publish post with image (simplified - text only for now).
         Для повноцінної публікації зображень потрібна реєстрація assets через окремий API.

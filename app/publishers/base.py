@@ -48,7 +48,10 @@ class BasePublisher(ABC):
         """
         try:
             if image_b64:
-                return self.publish_image(text, image_b64, **kwargs)
+                # Remove image_b64 from kwargs to avoid duplicate argument error
+                kwargs_copy = kwargs.copy()
+                kwargs_copy.pop('image_b64', None)
+                return self.publish_image(text, image_b64, **kwargs_copy)
             else:
                 return self.publish_text(text, **kwargs)
         except Exception as e:

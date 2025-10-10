@@ -58,7 +58,7 @@ class FacebookPublisher(BasePublisher):
                 "platform": "Facebook"
             }
 
-    def publish_image(self, text: str, image_b64: Optional[str], **kwargs) -> Dict[str, Any]:
+    def publish_image(self, text: str, image_b64: str, **kwargs) -> Dict[str, Any]:
         """Publish post with image to Facebook Page"""
         if not image_b64:
             return self.publish_text(text)
@@ -145,7 +145,7 @@ class InstagramPublisher(BasePublisher):
             "platform": "Instagram"
         }
 
-    def publish_image(self, text: str, image_b64: Optional[str], **kwargs) -> Dict[str, Any]:
+    def publish_image(self, text: str, image_b64: str, **kwargs) -> Dict[str, Any]:
         """
         Publish image to Instagram Business account.
         Потрібен remote_url (public) -> створити media container -> publish.
