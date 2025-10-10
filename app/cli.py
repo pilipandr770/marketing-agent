@@ -23,7 +23,7 @@ def apply_manual_migration():
         click.echo('❌ No database URL found in config')
         return
     
-    # Clean up URL for psycopg (remove SQLAlchemy dialect markers)
+    # Clean up URL for psycopg (remove SQLAlchemy dialect markers and problematic params)
     # postgresql+psycopg://... -> postgresql://...
     if '+psycopg' in db_url:
         db_url = db_url.replace('+psycopg', '')
@@ -31,6 +31,31 @@ def apply_manual_migration():
     # Also handle postgres:// (old Heroku style)
     if db_url.startswith('postgres://'):
         db_url = db_url.replace('postgres://', 'postgresql://', 1)
+    
+    # Remove problematic parameters that psycopg doesn't understand
+    # Parse URL and remove 'options' parameter which can contain complex syntax
+    from urllib.parse import urlparse, urlunparse, parse_qs, urlencode
+    
+    parsed = urlparse(db_url)
+    query_params = parse_qs(parsed.query)
+    
+    # Remove parameters that cause issues with psycopg
+    problematic_params = ['options']
+    for param in problematic_params:
+        query_params.pop(param, None)
+    
+    # Rebuild query string
+    clean_query = urlencode(query_params, doseq=True) if query_params else ''
+    
+    # Rebuild URL without problematic parameters
+    db_url = urlunparse((
+        parsed.scheme,
+        parsed.netloc,
+        parsed.path,
+        parsed.params,
+        clean_query,
+        parsed.fragment
+    ))
     
     # Read SQL file from project root (not app directory)
     project_root = os.path.dirname(os.path.dirname(__file__))

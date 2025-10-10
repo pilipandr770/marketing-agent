@@ -16,15 +16,26 @@ class FacebookPublisher(BasePublisher):
 
     def validate_config(self) -> None:
         """Validate Facebook configuration"""
+        logger.info("Validating Facebook config...")
+        logger.info(f"Config keys: {list(self.config.keys())}")
+        
         for f in ["access_token", "page_id"]:
             if not self.config.get(f):
+                logger.error(f"Missing Facebook config: {f}")
                 raise ValueError(f"Missing Facebook config: {f}")
+        
         self.access_token = self.config["access_token"]
         self.page_id = self.config["page_id"]
+        
         logger.info(f"Facebook publisher initialized for page: {self.page_id}")
+        logger.info(f"Access token length: {len(self.access_token) if self.access_token else 0}")
 
     def publish_text(self, text: str, **kwargs) -> Dict[str, Any]:
         """Publish text-only post to Facebook Page"""
+        logger.info(f"FacebookPublisher.publish_text called with text length: {len(text)}")
+        logger.info(f"Access token present: {bool(self.access_token)}")
+        logger.info(f"Page ID: {self.page_id}")
+        
         url = f"{GRAPH}/{self.page_id}/feed"
         
         try:
@@ -42,6 +53,7 @@ class FacebookPublisher(BasePublisher):
                 logger.info(f"Facebook post published successfully: {response_data.get('id', 'N/A')}")
             else:
                 logger.error(f"Facebook API error: {r.status_code} - {response_data}")
+                logger.error(f"Response text: {r.text}")
             
             return {
                 "success": ok, 
