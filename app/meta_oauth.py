@@ -18,8 +18,6 @@ logger = logging.getLogger(__name__)
 
 meta_bp = Blueprint('meta', __name__, url_prefix='/meta')
 
-meta_bp = Blueprint('meta', __name__, url_prefix='/meta')
-
 # Meta OAuth endpoints
 AUTHORIZATION_URL = "https://www.facebook.com/v20.0/dialog/oauth"
 TOKEN_URL = "https://graph.facebook.com/v20.0/oauth/access_token"
@@ -174,7 +172,9 @@ def callback():
                 "code": code
             },
             timeout=30
-        )        if token_response.status_code != 200:
+        )
+
+        if token_response.status_code != 200:
             raise ValueError(f"Token exchange failed: {token_response.text}")
 
         token_data = token_response.json()
