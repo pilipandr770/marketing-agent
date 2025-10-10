@@ -188,9 +188,13 @@ def validate_cron():
         })
     
     except Exception as e:
+        # Log error without exposing internal details (CodeQL security fix)
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"CRON validation error: {str(e)}")
         return jsonify({
             "valid": False,
-            "error": str(e)
+            "error": "Ungültiger CRON-Ausdruck"
         })
 
 @schedule_bp.route("/cron-examples")

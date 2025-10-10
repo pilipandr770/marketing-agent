@@ -223,9 +223,13 @@ def test_connection(channel):
                     "message": f"Verbindung erfolgreich! Bot: @{bot_info.get('username', 'N/A')}"
                 })
             else:
+                # Don't expose internal error details (CodeQL security fix)
+                import logging
+                logger = logging.getLogger(__name__)
+                logger.error(f"Telegram connection failed: {result.get('error', 'Unknown')}")
                 return jsonify({
                     "success": False,
-                    "message": f"Verbindung fehlgeschlagen: {result.get('error', 'Unbekannter Fehler')}"
+                    "message": "Verbindung fehlgeschlagen. Bitte überprüfen Sie Token und Chat-ID."
                 })
         
         return jsonify({
@@ -234,7 +238,11 @@ def test_connection(channel):
         })
     
     except Exception as e:
+        # Log error without exposing internal details (CodeQL security fix)
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.error(f"Connection test error for {channel}: {str(e)}")
         return jsonify({
             "success": False,
-            "message": f"Fehler beim Verbindungstest: {str(e)}"
+            "message": "Fehler beim Verbindungstest. Bitte überprüfen Sie Ihre Einstellungen."
         })

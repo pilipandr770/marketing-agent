@@ -58,10 +58,22 @@ def login():
         if user and user.is_active and check_password_hash(user.password_hash, form.password.data):
             login_user(user, remember=form.remember_me.data)
             
-            # Redirect to next page or dashboard
+            # Redirect to next page or dashboard (with open redirect protection)
             next_page = request.args.get('next')
             if next_page:
-                return redirect(next_page)
+                # Security fix: validate next_page to prevent open redirect (CodeQL #1)
+                from urllib.parse import urlparse, urljoin
+                from flask import request as flask_request
+                
+                # Only allow relative URLs or URLs to the same host
+                parsed = urlparse(next_page)
+                if parsed.netloc and parsed.netloc != flask_request.host:
+                    # External URL detected - redirect to dashboard instead
+                    return redirect(url_for("dashboard.index"))
+                
+                # Make URL safe by joining with request base
+                safe_url = urljoin(flask_request.host_url, next_page)
+                return redirect(safe_url)
             return redirect(url_for("dashboard.index"))
         else:
             flash("Ungültige E-Mail-Adresse oder Passwort.", "danger")
