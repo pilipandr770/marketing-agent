@@ -217,10 +217,14 @@ def test_connection(channel):
         if channel == "telegram":
             result = publisher.test_connection()
             if result.get("success"):
+                # Don't expose bot details (CodeQL security fix)
+                import logging
+                logger = logging.getLogger(__name__)
                 bot_info = result["response"]["result"]
+                logger.info(f"Telegram connection successful: @{bot_info.get('username', 'N/A')}")
                 return jsonify({
                     "success": True,
-                    "message": f"Verbindung erfolgreich! Bot: @{bot_info.get('username', 'N/A')}"
+                    "message": "Verbindung erfolgreich!"
                 })
             else:
                 # Don't expose internal error details (CodeQL security fix)

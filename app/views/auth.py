@@ -67,13 +67,17 @@ def login():
                 
                 # Only allow relative URLs or URLs to the same host
                 parsed = urlparse(next_page)
+                # Validate that URL is safe (no external redirects)
                 if parsed.netloc and parsed.netloc != flask_request.host:
                     # External URL detected - redirect to dashboard instead
                     return redirect(url_for("dashboard.index"))
                 
-                # Make URL safe by joining with request base
-                safe_url = urljoin(flask_request.host_url, next_page)
-                return redirect(safe_url)
+                # Only allow path redirects (no scheme/netloc)
+                if parsed.scheme or parsed.netloc:
+                    return redirect(url_for("dashboard.index"))
+                
+                # Safe internal redirect using url_for or path only
+                return redirect(next_page)
             return redirect(url_for("dashboard.index"))
         else:
             flash("Ungültige E-Mail-Adresse oder Passwort.", "danger")
