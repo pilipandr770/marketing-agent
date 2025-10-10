@@ -1,5 +1,5 @@
 # file: app/views/public.py
-from flask import Blueprint, render_template
+from flask import Blueprint, render_template, redirect, url_for
 
 public_bp = Blueprint("public", __name__)
 
@@ -7,6 +7,11 @@ public_bp = Blueprint("public", __name__)
 def landing():
     """Landing page for non-authenticated users"""
     return render_template("landing.html")
+
+@public_bp.route("/favicon.ico")
+def favicon():
+    """Redirect legacy favicon.ico requests to favicon.png"""
+    return redirect(url_for("static", filename="img/favicon.png"), code=301)
 
 @public_bp.route("/datenschutz")
 def datenschutz():
