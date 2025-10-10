@@ -1,11 +1,14 @@
 # file: app/views/dashboard.py
 import os
+import logging
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import login_required, current_user
 from ..extensions import db
 from ..forms import SettingsForm
 from ..models import User, Schedule, GeneratedContent
 from ..billing.stripe_service import create_checkout_session
+
+logger = logging.getLogger(__name__)
 
 dashboard_bp = Blueprint("dashboard", __name__, url_prefix="/dashboard")
 
@@ -49,7 +52,16 @@ def settings():
         current_user.linkedin_urn = form.linkedin_urn.data.strip() if form.linkedin_urn.data else None
         
         # Meta (Facebook / Instagram)
-        current_user.meta_access_token = form.meta_access_token.data.strip() if form.meta_access_token.data else None
+        meta_token = form.meta_access_token.data.strip() if form.meta_access_token.data else None
+        if meta_token:
+            # Try to exchange for long-lived token if credentials are available
+            try:
+                from .meta_oauth import exchange_for_long_lived_token
+                meta_token = exchange_for_long_lived_token(meta_token)
+            except Exception as e:
+                logger.warning(f"Could not exchange Meta token for long-lived: {e}")
+        
+        current_user.meta_access_token = meta_token
         current_user.facebook_page_id = form.facebook_page_id.data.strip() if form.facebook_page_id.data else None
         current_user.instagram_business_id = form.instagram_business_id.data.strip() if form.instagram_business_id.data else None
         

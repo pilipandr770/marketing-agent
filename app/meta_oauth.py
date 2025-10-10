@@ -35,10 +35,10 @@ def get_oauth_config():
     app_id = os.getenv("META_APP_ID")
     app_secret = os.getenv("META_APP_SECRET")
     redirect_uri = os.getenv("META_REDIRECT_URI")
-
+    
     if not app_id or not app_secret:
         raise ValueError("Meta OAuth credentials not configured. Set META_APP_ID and META_APP_SECRET")
-
+    
     return {
         "app_id": app_id,
         "app_secret": app_secret,
@@ -46,6 +46,42 @@ def get_oauth_config():
     }
 
 
+def exchange_for_long_lived_token(short_lived_token: str) -> str:
+    """
+    Exchange short-lived access token for long-lived token (60 days).
+    
+    Args:
+        short_lived_token: Short-lived access token
+        
+    Returns:
+        Long-lived access token or original token if exchange fails
+    """
+    config = get_oauth_config()
+    
+    try:
+        response = requests.get(
+            TOKEN_URL,
+            params={
+                "grant_type": "fb_exchange_token",
+                "client_id": config["app_id"],
+                "client_secret": config["app_secret"],
+                "fb_exchange_token": short_lived_token
+            },
+            timeout=30
+        )
+        
+        if response.status_code == 200:
+            data = response.json()
+            long_lived_token = data.get("access_token")
+            if long_lived_token:
+                logger.info("Successfully exchanged short-lived token for long-lived token")
+                return long_lived_token
+        
+        logger.warning(f"Failed to exchange token: {response.text}")
+    except Exception as e:
+        logger.error(f"Error exchanging token: {e}")
+    
+    return short_lived_token  # Return original token if exchange fails
 @meta_bp.route('/auth')
 @login_required
 def auth():
@@ -127,6 +163,9 @@ def callback():
 
         if not access_token:
             raise ValueError("No access token in response")
+
+        # Exchange short-lived token for long-lived token (60 days)
+        access_token = exchange_for_long_lived_token(access_token)
 
         # Get user's pages to obtain Facebook Page ID
         pages_response = requests.get(
