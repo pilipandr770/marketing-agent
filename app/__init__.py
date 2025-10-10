@@ -4,6 +4,7 @@ from flask import Flask
 from dotenv import load_dotenv
 from .extensions import db, migrate, login_manager, csrf
 from .jobs.scheduler import init_scheduler
+from .config import Config
 
 def create_app():
     # Load environment variables
@@ -11,12 +12,12 @@ def create_app():
     
     app = Flask(__name__, template_folder="templates", static_folder="static")
     
-    # Configuration
-    app.config["SECRET_KEY"] = os.getenv("FLASK_SECRET_KEY", "dev_secret_change_in_production")
+    # Load configuration from Config class
+    app.config.from_object(Config)
     
     # Database configuration with SSL support
     # Try DATABASE_URL first (Render's automatic variable), then SQLALCHEMY_DATABASE_URI
-    database_uri = os.getenv("SQLALCHEMY_DATABASE_URI") or os.getenv("DATABASE_URL", "sqlite:///marketing.db")
+    database_uri = app.config["SQLALCHEMY_DATABASE_URI"]
     
     # Fix dialect for psycopg3 if needed
     if database_uri.startswith("postgres://"):
@@ -30,16 +31,6 @@ def create_app():
         database_uri = f"{database_uri}{separator}sslmode=require"
     
     app.config["SQLALCHEMY_DATABASE_URI"] = database_uri
-    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
-    app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max file size
-    
-    # Connection pool settings for better stability
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-        "pool_pre_ping": True,  # Verify connections before using
-        "pool_recycle": 300,    # Recycle connections every 5 minutes
-        "pool_size": 10,        # Maximum number of connections
-        "max_overflow": 20      # Maximum overflow connections
-    }
 
     # Initialize extensions
     db.init_app(app)
