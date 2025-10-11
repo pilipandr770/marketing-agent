@@ -129,7 +129,21 @@
                 </p>
             </section>
 
-            <div class="mt-5">
+            <!-- GDPR Data Deletion Link -->
+            <div class="alert alert-info mt-5">
+                <h6 class="alert-heading">
+                    <i class="bi bi-shield-check"></i>
+                    Ihre Datenschutzrechte
+                </h6>
+                <p class="mb-0">
+                    Gemäß DSGVO haben Sie jederzeit das Recht, Ihre Daten zu löschen oder einzuschränken.
+                    <a href="{{ url_for('public.data_deletion') }}" class="alert-link">
+                        <strong>→ Zur Datenlöschung</strong>
+                    </a>
+                </p>
+            </div>
+
+            <div class="mt-4">
                 <a href="{{ url_for('public.landing') }}" class="btn btn-primary">
                     <i class="bi bi-arrow-left"></i> Zurück zur Startseite
                 </a>

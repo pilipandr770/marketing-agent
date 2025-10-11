@@ -113,3 +113,184 @@ def subscribe(plan):
     except Exception as e:
         flash(f"Fehler beim Erstellen der Zahlungssitzung: {str(e)}", "danger")
         return redirect(url_for("dashboard.billing"))
+
+
+# === Data Deletion Routes (GDPR Compliance & Meta Requirement) ===
+
+@dashboard_bp.route("/export-data")
+@login_required
+def export_user_data():
+    """Export all user data as JSON (GDPR Article 20 - Right to data portability)"""
+    import json
+    from flask import Response
+    from datetime import datetime
+    from ..models import UserFile
+    
+    # Collect all user data
+    user_data = {
+        "export_date": datetime.utcnow().isoformat(),
+        "user": {
+            "email": current_user.email,
+            "created_at": current_user.created_at.isoformat() if current_user.created_at else None,
+            "is_premium": current_user.is_premium,
+            "subscription_tier": current_user.subscription_tier
+        },
+        "settings": {
+            "openai_system_prompt": current_user.openai_system_prompt,
+            "has_openai_key": bool(current_user.openai_api_key),
+            "has_telegram_token": bool(current_user.telegram_token),
+            "has_linkedin_token": bool(current_user.linkedin_access_token),
+            "has_meta_token": bool(current_user.meta_access_token),
+            "linkedin_urn": current_user.linkedin_urn,
+            "facebook_page_id": current_user.facebook_page_id,
+            "instagram_business_id": current_user.instagram_business_id
+        },
+        "schedules": [
+            {
+                "id": schedule.id,
+                "name": schedule.name,
+                "cron_schedule": schedule.cron_schedule,
+                "active": schedule.active,
+                "channel": schedule.channel,
+                "created_at": schedule.created_at.isoformat() if schedule.created_at else None
+            }
+            for schedule in Schedule.query.filter_by(user_id=current_user.id).all()
+        ],
+        "files": [
+            {
+                "filename": file.filename,
+                "file_type": file.file_type,
+                "uploaded_at": file.uploaded_at.isoformat() if file.uploaded_at else None
+            }
+            for file in UserFile.query.filter_by(user_id=current_user.id).all()
+        ],
+        "generated_content": [
+            {
+                "id": content.id,
+                "platform": content.platform,
+                "published": content.published,
+                "created_at": content.created_at.isoformat() if content.created_at else None
+            }
+            for content in GeneratedContent.query.filter_by(user_id=current_user.id).order_by(GeneratedContent.created_at.desc()).limit(100).all()
+        ]
+    }
+    
+    # Create JSON response
+    json_data = json.dumps(user_data, indent=2, ensure_ascii=False)
+    
+    response = Response(
+        json_data,
+        mimetype='application/json',
+        headers={
+            'Content-Disposition': f'attachment; filename=marketing-agent-data-{current_user.id}.json'
+        }
+    )
+    
+    logger.info(f"User {current_user.email} exported their data")
+    return response
+
+
+@dashboard_bp.route("/delete-api-keys", methods=["POST"])
+@login_required
+def delete_api_keys():
+    """Delete all stored API keys"""
+    current_user.openai_api_key = None
+    current_user.telegram_token = None
+    current_user.telegram_chat_id = None
+    current_user.linkedin_access_token = None
+    current_user.linkedin_urn = None
+    current_user.meta_access_token = None
+    current_user.facebook_page_id = None
+    current_user.instagram_business_id = None
+    
+    db.session.commit()
+    
+    logger.info(f"User {current_user.email} deleted all API keys")
+    flash("Alle API-Keys wurden erfolgreich gelöscht.", "success")
+    return redirect(url_for("public.data_deletion"))
+
+
+@dashboard_bp.route("/delete-content", methods=["POST"])
+@login_required
+def delete_user_content():
+    """Delete all user's schedules, files and generated content"""
+    import os
+    from ..models import UserFile
+    
+    # Delete schedules
+    Schedule.query.filter_by(user_id=current_user.id).delete()
+    
+    # Delete files from filesystem and database
+    files = UserFile.query.filter_by(user_id=current_user.id).all()
+    for file in files:
+        try:
+            file_path = os.path.join("app", file.filepath)
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except Exception as e:
+            logger.error(f"Could not delete file {file.filepath}: {e}")
+    
+    UserFile.query.filter_by(user_id=current_user.id).delete()
+    
+    # Delete generated content
+    GeneratedContent.query.filter_by(user_id=current_user.id).delete()
+    
+    db.session.commit()
+    
+    logger.info(f"User {current_user.email} deleted all content")
+    flash("Alle Zeitpläne, Dateien und generierte Inhalte wurden gelöscht.", "success")
+    return redirect(url_for("public.data_deletion"))
+
+
+@dashboard_bp.route("/delete-account", methods=["POST"])
+@login_required
+def delete_account():
+    """Completely delete user account (GDPR Article 17 - Right to erasure)"""
+    import os
+    from flask_login import logout_user
+    from ..models import UserFile, Subscription
+    
+    confirm_email = request.form.get("confirm_email", "").strip()
+    
+    # Verify email confirmation
+    if confirm_email != current_user.email:
+        flash("E-Mail-Bestätigung stimmt nicht überein. Konto wurde nicht gelöscht.", "danger")
+        return redirect(url_for("public.data_deletion"))
+    
+    user_email = current_user.email
+    user_id = current_user.id
+    
+    # Delete all user data
+    try:
+        # 1. Delete files from filesystem
+        files = UserFile.query.filter_by(user_id=user_id).all()
+        for file in files:
+            try:
+                file_path = os.path.join("app", file.filepath)
+                if os.path.exists(file_path):
+                    os.remove(file_path)
+            except Exception as e:
+                logger.error(f"Could not delete file {file.filepath}: {e}")
+        
+        # 2. Delete database records (cascading)
+        UserFile.query.filter_by(user_id=user_id).delete()
+        Schedule.query.filter_by(user_id=user_id).delete()
+        GeneratedContent.query.filter_by(user_id=user_id).delete()
+        Subscription.query.filter_by(user_id=user_id).delete()
+        
+        # 3. Delete user account
+        db.session.delete(current_user)
+        db.session.commit()
+        
+        # 4. Logout
+        logout_user()
+        
+        logger.info(f"User account deleted: {user_email} (ID: {user_id})")
+        flash("Ihr Konto wurde erfolgreich gelöscht. Wir bedauern, Sie gehen zu sehen.", "success")
+        return redirect(url_for("public.landing"))
+        
+    except Exception as e:
+        db.session.rollback()
+        logger.error(f"Error deleting user account {user_email}: {e}")
+        flash("Fehler beim Löschen des Kontos. Bitte kontaktieren Sie den Support.", "danger")
+        return redirect(url_for("public.data_deletion"))

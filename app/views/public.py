@@ -27,3 +27,21 @@ def agb():
 def impressum():
     """Imprint page (German legal requirement)"""
     return render_template("impressum.html")
+
+@public_bp.route("/data-deletion")
+def data_deletion():
+    """Data deletion page (GDPR compliance & Meta requirement)"""
+    from flask_login import current_user
+    from ..models import Schedule, UserFile
+    from ..extensions import db
+    
+    schedule_count = 0
+    file_count = 0
+    
+    if current_user.is_authenticated:
+        schedule_count = Schedule.query.filter_by(user_id=current_user.id).count()
+        file_count = UserFile.query.filter_by(user_id=current_user.id).count()
+    
+    return render_template("data_deletion.html", 
+                          schedule_count=schedule_count,
+                          file_count=file_count)

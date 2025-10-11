@@ -103,6 +103,10 @@
                                 <i class="bi bi-credit-card"></i> Abonnement
                             </a></li>
                             <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ url_for('public.data_deletion') }}">
+                                <i class="bi bi-shield-exclamation text-warning"></i> Daten verwalten
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">
                                 <i class="bi bi-box-arrow-right"></i> Abmelden
                             </a></li>
@@ -142,7 +146,8 @@
                 <div class="col-md-6 text-center text-md-end">
                     <a href="{{ url_for('public.datenschutz') }}" class="text-muted text-decoration-none me-3">Datenschutz</a>
                     <a href="{{ url_for('public.agb') }}" class="text-muted text-decoration-none me-3">AGB</a>
-                    <a href="{{ url_for('public.impressum') }}" class="text-muted text-decoration-none">Impressum</a>
+                    <a href="{{ url_for('public.impressum') }}" class="text-muted text-decoration-none me-3">Impressum</a>
+                    <a href="{{ url_for('public.data_deletion') }}" class="text-muted text-decoration-none">Daten löschen</a>
                 </div>
             </div>
         </div>
