@@ -124,7 +124,7 @@ def export_user_data():
     import json
     from flask import Response
     from datetime import datetime
-    from ..models import UserFile
+    from ..models import FileAsset
     
     # Collect all user data
     user_data = {
@@ -162,7 +162,7 @@ def export_user_data():
                 "file_type": file.file_type,
                 "uploaded_at": file.uploaded_at.isoformat() if file.uploaded_at else None
             }
-            for file in UserFile.query.filter_by(user_id=current_user.id).all()
+            for file in FileAsset.query.filter_by(user_id=current_user.id).all()
         ],
         "generated_content": [
             {
@@ -215,13 +215,13 @@ def delete_api_keys():
 def delete_user_content():
     """Delete all user's schedules, files and generated content"""
     import os
-    from ..models import UserFile
+    from ..models import FileAsset
     
     # Delete schedules
     Schedule.query.filter_by(user_id=current_user.id).delete()
     
     # Delete files from filesystem and database
-    files = UserFile.query.filter_by(user_id=current_user.id).all()
+    files = FileAsset.query.filter_by(user_id=current_user.id).all()
     for file in files:
         try:
             file_path = os.path.join("app", file.filepath)
@@ -230,7 +230,7 @@ def delete_user_content():
         except Exception as e:
             logger.error(f"Could not delete file {file.filepath}: {e}")
     
-    UserFile.query.filter_by(user_id=current_user.id).delete()
+    FileAsset.query.filter_by(user_id=current_user.id).delete()
     
     # Delete generated content
     GeneratedContent.query.filter_by(user_id=current_user.id).delete()
@@ -248,7 +248,7 @@ def delete_account():
     """Completely delete user account (GDPR Article 17 - Right to erasure)"""
     import os
     from flask_login import logout_user
-    from ..models import UserFile, Subscription
+    from ..models import FileAsset, Subscription
     
     confirm_email = request.form.get("confirm_email", "").strip()
     
@@ -263,7 +263,7 @@ def delete_account():
     # Delete all user data
     try:
         # 1. Delete files from filesystem
-        files = UserFile.query.filter_by(user_id=user_id).all()
+        files = FileAsset.query.filter_by(user_id=user_id).all()
         for file in files:
             try:
                 file_path = os.path.join("app", file.filepath)
@@ -273,7 +273,7 @@ def delete_account():
                 logger.error(f"Could not delete file {file.filepath}: {e}")
         
         # 2. Delete database records (cascading)
-        UserFile.query.filter_by(user_id=user_id).delete()
+        FileAsset.query.filter_by(user_id=user_id).delete()
         Schedule.query.filter_by(user_id=user_id).delete()
         GeneratedContent.query.filter_by(user_id=user_id).delete()
         Subscription.query.filter_by(user_id=user_id).delete()

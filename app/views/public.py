@@ -32,7 +32,7 @@ def impressum():
 def data_deletion():
     """Data deletion page (GDPR compliance & Meta requirement)"""
     from flask_login import current_user
-    from ..models import Schedule, UserFile
+    from ..models import Schedule, FileAsset
     from ..extensions import db
     
     schedule_count = 0
@@ -40,7 +40,7 @@ def data_deletion():
     
     if current_user.is_authenticated:
         schedule_count = Schedule.query.filter_by(user_id=current_user.id).count()
-        file_count = UserFile.query.filter_by(user_id=current_user.id).count()
+        file_count = FileAsset.query.filter_by(user_id=current_user.id).count()
     
     return render_template("data_deletion.html", 
                           schedule_count=schedule_count,
